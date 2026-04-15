@@ -43,6 +43,8 @@ jobs:
   coding-agent:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      branch_name: ${{ steps.branch.outputs.name }}
 
     services:
       postgres:
@@ -119,9 +121,12 @@ jobs:
         run: node scripts/validate-all.js --skip-jira --sprint ${{ github.event.inputs.sprint_number }} || echo "WARN - validation failed, continuing"
 
       - name: Create sprint branch
+        id: branch
         if: steps.skip_check.outputs.skip != 'true'
         run: |
-          git checkout -b sprint-${{ github.event.inputs.sprint_number }}-$(date +%s)
+          BRANCH="sprint-${{ github.event.inputs.sprint_number }}"
+          git checkout -b "$BRANCH" || git checkout "$BRANCH"
+          echo "name=$BRANCH" >> "$GITHUB_OUTPUT"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
@@ -173,12 +178,6 @@ jobs:
               }
             }
 
-      - name: Commit Phase 1 progress
-        if: always() && steps.skip_check.outputs.skip != 'true'
-        run: |
-          git add -A
-          git diff --cached --quiet || git commit -m "feat: sprint ${{ github.event.inputs.sprint_number }} phase 1 — schema + routes + components"
-
       - name: "Phase 2: BRD fill + compilation check"
         id: phase2
         if: steps.skip_check.outputs.skip != 'true' && steps.phase1.outcome == 'success'
@@ -212,6 +211,55 @@ jobs:
               }
             }
 
+      - name: Validate and recover dependencies
+        if: always() && steps.skip_check.outputs.skip != 'true'
+        id: dep_check
+        run: |
+          echo "=== Validating dependencies (clean install) ==="
+          rm -rf node_modules package-lock.json
+
+          # Attempt 1: strict install
+          if npm install 2>dep-error.txt; then
+            echo "Dependencies resolved cleanly"
+          else
+            echo "::warning::Strict npm install failed — trying --legacy-peer-deps"
+            cat dep-error.txt
+            rm -rf node_modules package-lock.json
+
+            # Attempt 2: legacy peer deps
+            if npm install --legacy-peer-deps 2>dep-error2.txt; then
+              echo "legacy-peer-deps=true" > .npmrc
+              echo "Resolved with --legacy-peer-deps (.npmrc created)"
+            else
+              echo "::error::Both install strategies failed"
+              cat dep-error2.txt
+              exit 1
+            fi
+          fi
+
+          # Verify lock file works with npm ci
+          rm -rf node_modules
+          npm ci
+          echo "=== Dependency validation passed ==="
+
+      - name: Commit and push all coding work
+        if: always() && steps.skip_check.outputs.skip != 'true'
+        id: push_code
+        run: |
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "feat: sprint ${{ github.event.inputs.sprint_number }} — code + BRD + deps validated"
+            if git push --set-upstream origin HEAD; then
+              echo "pushed=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "::warning::Push failed — artifact will still be uploaded"
+              echo "pushed=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
       - uses: actions/upload-artifact@v4
         if: always() && steps.skip_check.outputs.skip != 'true'
         with:
@@ -220,13 +268,6 @@ jobs:
             .
             !node_modules
             !.git
-      - name: Push changes (non-fatal)
-        if: steps.skip_check.outputs.skip != 'true'
-        continue-on-error: true
-        run: |
-          git add -A
-          git diff --cached --quiet || git commit -m "feat: sprint ${{ github.event.inputs.sprint_number }} phase 2 — BRD + verify"
-          git push --set-upstream origin HEAD
 
   # ═══════════════════════════════════════════════════════════════════════
   # JOB 2: TESTING AGENT
@@ -264,6 +305,14 @@ jobs:
           path: /tmp/replay-tested/
 
       # ── Normal/resume path ──
+      # Checkout sprint branch for git context (commit/push at end)
+      - uses: actions/checkout@v4
+        if: steps.skip_check.outputs.skip != 'true'
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: sprint-${{ github.event.inputs.sprint_number }}
+        continue-on-error: true
+
       # Download from this run (normal) or previous run (resume target)
       - uses: actions/download-artifact@v4
         if: steps.skip_check.outputs.skip != 'true' && env.RESUME_FROM == ''
@@ -280,8 +329,9 @@ jobs:
         if: steps.skip_check.outputs.skip != 'true'
         with:
           node-version: 20
-      - run: npm ci
+      - name: Install dependencies
         if: steps.skip_check.outputs.skip != 'true'
+        run: npm ci || npm ci --legacy-peer-deps
       - name: Make source code read-only
         if: steps.skip_check.outputs.skip != 'true'
         run: |
@@ -328,6 +378,20 @@ jobs:
             .
             !node_modules
             !.git
+
+      - name: Commit and push tests
+        if: always() && steps.skip_check.outputs.skip != 'true'
+        continue-on-error: true
+        run: |
+          if [ ! -d .git ]; then
+            echo "No git context — skipping commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "test: sprint ${{ github.event.inputs.sprint_number }} — test suite"
+          git push || echo "::warning::Push failed"
 
   # ═══════════════════════════════════════════════════════════════════════
   # JOB 3: TEST RUN (deterministic — no AI)
@@ -402,8 +466,9 @@ jobs:
         if: steps.skip_check.outputs.skip != 'true'
         with:
           node-version: 20
-      - run: npm ci
+      - name: Install dependencies
         if: steps.skip_check.outputs.skip != 'true'
+        run: npm ci || npm ci --legacy-peer-deps
       - name: Generate Prisma Client
         if: steps.skip_check.outputs.skip != 'true'
         run: npx prisma generate
@@ -458,6 +523,14 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # Checkout sprint branch for git context (commit/push at end)
+      - uses: actions/checkout@v4
+        if: steps.skip_check.outputs.skip != 'true'
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: sprint-${{ github.event.inputs.sprint_number }}
+        continue-on-error: true
+
       # ── Normal path: download from this run ──
       - uses: actions/download-artifact@v4
         if: steps.skip_check.outputs.skip != 'true' && env.RESUME_FROM == ''
@@ -477,8 +550,9 @@ jobs:
         if: steps.skip_check.outputs.skip != 'true'
         with:
           node-version: 20
-      - run: npm ci
+      - name: Install dependencies
         if: steps.skip_check.outputs.skip != 'true'
+        run: npm ci || npm ci --legacy-peer-deps
       - name: Fix and re-test
         if: steps.skip_check.outputs.skip != 'true'
         uses: anthropics/claude-code-action@39431830520a7ae6c0c572f11a7707e7043325e3
@@ -536,6 +610,20 @@ jobs:
           path: |
             test-results.json
             test-output.txt
+
+      - name: Commit and push fixes
+        if: always() && steps.skip_check.outputs.skip != 'true'
+        continue-on-error: true
+        run: |
+          if [ ! -d .git ]; then
+            echo "No git context — skipping commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "fix: sprint ${{ github.event.inputs.sprint_number }} — test fixes"
+          git push || echo "::warning::Push failed"
 
   # ═══════════════════════════════════════════════════════════════════════
   # JOB 5: REVIEW
