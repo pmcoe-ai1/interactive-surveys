@@ -193,7 +193,7 @@ jobs:
             - Do NOT modify files outside tests/
             - Do NOT run the tests — Job 3 runs them deterministically
           claude_args: |
-            --max-turns 30
+            --max-turns 50
             --allowedTools Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(npm:*),Bash(npx:*),Bash(cat:*),Bash(ls:*),Bash(mkdir:*)
       - name: Restore permissions
         if: always()
