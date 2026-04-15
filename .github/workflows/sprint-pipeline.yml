@@ -114,8 +114,14 @@ jobs:
         if: steps.skip_check.outputs.skip != 'true'
         with:
           node-version: 20
-      - run: npm ci
+      - name: Configure git identity
         if: steps.skip_check.outputs.skip != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Install dependencies
+        if: steps.skip_check.outputs.skip != 'true'
+        run: npm ci || npm install
       - name: Validate pipeline inputs
         if: steps.skip_check.outputs.skip != 'true'
         run: node scripts/validate-all.js --skip-jira --sprint ${{ github.event.inputs.sprint_number }} || echo "WARN - validation failed, continuing"
@@ -127,8 +133,6 @@ jobs:
           BRANCH="sprint-${{ github.event.inputs.sprint_number }}"
           git checkout -b "$BRANCH" || git checkout "$BRANCH"
           echo "name=$BRANCH" >> "$GITHUB_OUTPUT"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: "Phase 1: Prisma schema, API routes, services"
         id: phase1
