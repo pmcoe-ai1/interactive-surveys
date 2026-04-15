@@ -7,14 +7,39 @@ on:
         description: 'Sprint number'
         required: true
         default: '1'
+      resume_from:
+        description: 'Resume from this job (leave empty for full run)'
+        required: false
+        default: ''
+        type: choice
+        options:
+          - ''
+          - testing-agent
+          - test-run
+          - fix-loop
+          - review
+      previous_run_id:
+        description: 'Run ID to download artifacts from (required if resume_from is set)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
+  actions: read
   id-token: write
   pull-requests: write
   issues: write
 
+env:
+  RESUME_FROM: ${{ github.event.inputs.resume_from }}
+  PREVIOUS_RUN_ID: ${{ github.event.inputs.previous_run_id }}
+
 jobs:
+  # ═══════════════════════════════════════════════════════════════════════
+  # JOB 1: CODING AGENT
+  # Skips when: resume_from is any non-empty value
+  # Replays: sprint-code
+  # ═══════════════════════════════════════════════════════════════════════
   coding-agent:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -35,17 +60,66 @@ jobs:
           --health-retries=5
 
     steps:
+      # ── Resume control ──
+      - name: Check if skipping
+        id: skip_check
+        run: |
+          if [ -n "$RESUME_FROM" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping coding-agent — resuming from $RESUME_FROM"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate resume inputs
+        if: env.RESUME_FROM != '' && env.PREVIOUS_RUN_ID == ''
+        run: |
+          echo "ERROR: resume_from='$RESUME_FROM' but previous_run_id is empty"
+          echo "You must provide the run ID to download artifacts from."
+          exit 1
+
+      - name: Validate previous run artifacts exist
+        if: env.RESUME_FROM != '' && env.PREVIOUS_RUN_ID != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ARTIFACTS=$(gh api repos/${{ github.repository }}/actions/runs/$PREVIOUS_RUN_ID/artifacts --jq '.artifacts[].name')
+          echo "Available artifacts in run $PREVIOUS_RUN_ID: $ARTIFACTS"
+          echo "$ARTIFACTS" | grep -q "sprint-code" || { echo "ERROR: sprint-code artifact not found"; exit 1; }
+
+      # ── Replay path (when skipping) ──
+      - name: Replay sprint-code from previous run
+        if: steps.skip_check.outputs.skip == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/replay-sprint-code
+          gh run download "$PREVIOUS_RUN_ID" -n sprint-code -D /tmp/replay-sprint-code
+          echo "Downloaded sprint-code from run $PREVIOUS_RUN_ID"
+
+      - uses: actions/upload-artifact@v4
+        if: steps.skip_check.outputs.skip == 'true'
+        with:
+          name: sprint-code
+          path: /tmp/replay-sprint-code/
+
+      # ── Normal path (full run) ──
       - uses: actions/checkout@v4
+        if: steps.skip_check.outputs.skip != 'true'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-node@v4
+        if: steps.skip_check.outputs.skip != 'true'
         with:
           node-version: 20
       - run: npm ci
+        if: steps.skip_check.outputs.skip != 'true'
       - name: Validate pipeline inputs
+        if: steps.skip_check.outputs.skip != 'true'
         run: node scripts/validate-all.js --skip-jira --sprint ${{ github.event.inputs.sprint_number }} || echo "WARN - validation failed, continuing"
 
       - name: Create sprint branch
+        if: steps.skip_check.outputs.skip != 'true'
         run: |
           git checkout -b sprint-${{ github.event.inputs.sprint_number }}-$(date +%s)
           git config user.name "github-actions[bot]"
@@ -53,6 +127,7 @@ jobs:
 
       - name: "Phase 1: Prisma schema, API routes, services"
         id: phase1
+        if: steps.skip_check.outputs.skip != 'true'
         uses: anthropics/claude-code-action@39431830520a7ae6c0c572f11a7707e7043325e3
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -99,14 +174,14 @@ jobs:
             }
 
       - name: Commit Phase 1 progress
-        if: always()
+        if: always() && steps.skip_check.outputs.skip != 'true'
         run: |
           git add -A
           git diff --cached --quiet || git commit -m "feat: sprint ${{ github.event.inputs.sprint_number }} phase 1 — schema + routes + components"
 
       - name: "Phase 2: BRD fill + compilation check"
         id: phase2
-        if: steps.phase1.outcome == 'success'
+        if: steps.skip_check.outputs.skip != 'true' && steps.phase1.outcome == 'success'
         uses: anthropics/claude-code-action@39431830520a7ae6c0c572f11a7707e7043325e3
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -138,7 +213,7 @@ jobs:
             }
 
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.skip_check.outputs.skip != 'true'
         with:
           name: sprint-code
           path: |
@@ -146,29 +221,74 @@ jobs:
             !node_modules
             !.git
       - name: Push changes (non-fatal)
+        if: steps.skip_check.outputs.skip != 'true'
         continue-on-error: true
         run: |
           git add -A
           git diff --cached --quiet || git commit -m "feat: sprint ${{ github.event.inputs.sprint_number }} phase 2 — BRD + verify"
           git push --set-upstream origin HEAD
 
+  # ═══════════════════════════════════════════════════════════════════════
+  # JOB 2: TESTING AGENT
+  # Skips when: resume_from is test-run, fix-loop, or review
+  # Replays: sprint-code-with-tests
+  # ═══════════════════════════════════════════════════════════════════════
   testing-agent:
     needs: coding-agent
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
+      - name: Check if skipping
+        id: skip_check
+        run: |
+          if [ "$RESUME_FROM" = "test-run" ] || [ "$RESUME_FROM" = "fix-loop" ] || [ "$RESUME_FROM" = "review" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping testing-agent — resuming from $RESUME_FROM"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Replay path (when skipping) ──
+      - name: Replay sprint-code-with-tests from previous run
+        if: steps.skip_check.outputs.skip == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/replay-tested
+          gh run download "$PREVIOUS_RUN_ID" -n sprint-code-with-tests -D /tmp/replay-tested
+
+      - uses: actions/upload-artifact@v4
+        if: steps.skip_check.outputs.skip == 'true'
+        with:
+          name: sprint-code-with-tests
+          path: /tmp/replay-tested/
+
+      # ── Normal/resume path ──
+      # Download from this run (normal) or previous run (resume target)
       - uses: actions/download-artifact@v4
+        if: steps.skip_check.outputs.skip != 'true' && env.RESUME_FROM == ''
         with:
           name: sprint-code
+
+      - name: Download sprint-code from previous run
+        if: steps.skip_check.outputs.skip != 'true' && env.RESUME_FROM != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh run download "$PREVIOUS_RUN_ID" -n sprint-code
+
       - uses: actions/setup-node@v4
+        if: steps.skip_check.outputs.skip != 'true'
         with:
           node-version: 20
       - run: npm ci
+        if: steps.skip_check.outputs.skip != 'true'
       - name: Make source code read-only
+        if: steps.skip_check.outputs.skip != 'true'
         run: |
           chmod -R a-w src/ || true
           chmod -R a-w prisma/ || true
       - name: Testing Agent writes tests
+        if: steps.skip_check.outputs.skip != 'true'
         uses: anthropics/claude-code-action@39431830520a7ae6c0c572f11a7707e7043325e3
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -196,12 +316,12 @@ jobs:
             --max-turns 50
             --allowedTools Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(npm:*),Bash(npx:*),Bash(cat:*),Bash(ls:*),Bash(mkdir:*)
       - name: Restore permissions
-        if: always()
+        if: always() && steps.skip_check.outputs.skip != 'true'
         run: |
           chmod -R u+w src/ || true
           chmod -R u+w prisma/ || true
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.skip_check.outputs.skip != 'true'
         with:
           name: sprint-code-with-tests
           path: |
@@ -209,22 +329,87 @@ jobs:
             !node_modules
             !.git
 
+  # ═══════════════════════════════════════════════════════════════════════
+  # JOB 3: TEST RUN (deterministic — no AI)
+  # Skips when: resume_from is fix-loop or review
+  # Replays: sprint-code-tested + test-results
+  # Special: deliberately fails when resume_from=fix-loop
+  # ═══════════════════════════════════════════════════════════════════════
   test-run:
     needs: testing-agent
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Check if skipping
+        id: skip_check
+        run: |
+          if [ "$RESUME_FROM" = "fix-loop" ] || [ "$RESUME_FROM" = "review" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping test-run — resuming from $RESUME_FROM"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Replay path (when skipping) ──
+      - name: Replay sprint-code-tested from previous run
+        if: steps.skip_check.outputs.skip == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/replay-code-tested
+          gh run download "$PREVIOUS_RUN_ID" -n sprint-code-tested -D /tmp/replay-code-tested
+
+      - uses: actions/upload-artifact@v4
+        if: steps.skip_check.outputs.skip == 'true'
+        with:
+          name: sprint-code-tested
+          path: /tmp/replay-code-tested/
+
+      - name: Replay test-results from previous run
+        if: steps.skip_check.outputs.skip == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/replay-test-results
+          gh run download "$PREVIOUS_RUN_ID" -n test-results -D /tmp/replay-test-results
+
+      - uses: actions/upload-artifact@v4
+        if: steps.skip_check.outputs.skip == 'true'
+        with:
+          name: test-results
+          path: /tmp/replay-test-results/
+
+      # Deliberately fail when resuming into fix-loop so failure() triggers it
+      - name: Replay failure for fix-loop resume
+        if: steps.skip_check.outputs.skip == 'true' && env.RESUME_FROM == 'fix-loop'
+        run: |
+          echo "Deliberately failing test-run so fix-loop triggers"
+          exit 1
+
+      # ── Normal/resume path ──
       - uses: actions/download-artifact@v4
+        if: steps.skip_check.outputs.skip != 'true' && env.RESUME_FROM == ''
         with:
           name: sprint-code-with-tests
+
+      - name: Download sprint-code-with-tests from previous run
+        if: steps.skip_check.outputs.skip != 'true' && env.RESUME_FROM != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh run download "$PREVIOUS_RUN_ID" -n sprint-code-with-tests
+
       - uses: actions/setup-node@v4
+        if: steps.skip_check.outputs.skip != 'true'
         with:
           node-version: 20
       - run: npm ci
+        if: steps.skip_check.outputs.skip != 'true'
       - name: Generate Prisma Client
+        if: steps.skip_check.outputs.skip != 'true'
         run: npx prisma generate
       - name: Run tests (deterministic — no AI)
         id: tests
+        if: steps.skip_check.outputs.skip != 'true'
         run: |
           set -o pipefail
           if npx jest --ci --passWithNoTests --json --outputFile=test-results.json --forceExit 2>&1 | tee test-output.txt; then
@@ -234,14 +419,14 @@ jobs:
           fi
         continue-on-error: true
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.skip_check.outputs.skip != 'true'
         with:
           name: test-results
           path: |
             test-results.json
             test-output.txt
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.skip_check.outputs.skip != 'true'
         with:
           name: sprint-code-tested
           path: |
@@ -249,23 +434,53 @@ jobs:
             !node_modules
             !.git
       - name: Fail if tests failed
-        if: steps.tests.outputs.tests_passed == 'false'
+        if: steps.skip_check.outputs.skip != 'true' && steps.tests.outputs.tests_passed == 'false'
         run: exit 1
 
+  # ═══════════════════════════════════════════════════════════════════════
+  # JOB 4: FIX LOOP
+  # Runs when: test-run failed OR resume_from=fix-loop
+  # Skips when: resume_from=review
+  # ═══════════════════════════════════════════════════════════════════════
   fix-loop:
     needs: test-run
-    if: failure()
+    if: failure() || github.event.inputs.resume_from == 'fix-loop'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Check if skipping
+        id: skip_check
+        run: |
+          if [ "$RESUME_FROM" = "review" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping fix-loop — resuming from review"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Normal path: download from this run ──
       - uses: actions/download-artifact@v4
+        if: steps.skip_check.outputs.skip != 'true' && env.RESUME_FROM == ''
         with:
           name: sprint-code-tested
+
+      # ── Resume path: download from previous run ──
+      - name: Download sprint-code-tested from previous run
+        if: steps.skip_check.outputs.skip != 'true' && env.RESUME_FROM != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh run download "$PREVIOUS_RUN_ID" -n sprint-code-tested
+          gh run download "$PREVIOUS_RUN_ID" -n test-results
+
       - uses: actions/setup-node@v4
+        if: steps.skip_check.outputs.skip != 'true'
         with:
           node-version: 20
       - run: npm ci
+        if: steps.skip_check.outputs.skip != 'true'
       - name: Fix and re-test
+        if: steps.skip_check.outputs.skip != 'true'
         uses: anthropics/claude-code-action@39431830520a7ae6c0c572f11a7707e7043325e3
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -287,7 +502,7 @@ jobs:
             --allowedTools Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(cat:*),Bash(ls:*)
       - name: Verify fixes (max 3 attempts)
         id: verify
-        if: always()
+        if: always() && steps.skip_check.outputs.skip != 'true'
         run: |
           npx prisma generate
           for attempt in 1 2 3; do
@@ -307,7 +522,7 @@ jobs:
           echo "fix_succeeded=false" >> "$GITHUB_OUTPUT"
           exit 1
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.skip_check.outputs.skip != 'true'
         with:
           name: sprint-code-fixed
           path: |
@@ -315,27 +530,49 @@ jobs:
             !node_modules
             !.git
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.skip_check.outputs.skip != 'true'
         with:
           name: test-results-fixed
           path: |
             test-results.json
             test-output.txt
 
+  # ═══════════════════════════════════════════════════════════════════════
+  # JOB 5: REVIEW
+  # ═══════════════════════════════════════════════════════════════════════
   review:
     needs: [test-run, fix-loop]
     if: >-
       always() &&
-      (needs.test-run.result == 'success' || needs.fix-loop.result == 'success')
+      (needs.test-run.result == 'success' ||
+       needs.fix-loop.result == 'success' ||
+       github.event.inputs.resume_from == 'review')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # ── Resume path: download from previous run ──
+      - name: Download code from previous run (resume mode)
+        if: env.RESUME_FROM == 'review'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh run download "$PREVIOUS_RUN_ID" -n sprint-code-fixed 2>/dev/null; then
+            echo "Downloaded sprint-code-fixed from previous run"
+          else
+            gh run download "$PREVIOUS_RUN_ID" -n sprint-code-tested
+            echo "Downloaded sprint-code-tested from previous run (no fix artifact)"
+          fi
+          # Also grab test results
+          gh run download "$PREVIOUS_RUN_ID" -n test-results-fixed 2>/dev/null || \
+            gh run download "$PREVIOUS_RUN_ID" -n test-results 2>/dev/null || true
+
+      # ── Normal path ──
       - uses: actions/download-artifact@v4
-        if: needs.fix-loop.result == 'success'
+        if: env.RESUME_FROM != 'review' && needs.fix-loop.result == 'success'
         with:
           name: sprint-code-fixed
       - uses: actions/download-artifact@v4
-        if: needs.fix-loop.result != 'success'
+        if: env.RESUME_FROM != 'review' && needs.fix-loop.result != 'success'
         with:
           name: sprint-code-tested
       - uses: actions/setup-node@v4
