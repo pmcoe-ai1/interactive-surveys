@@ -6,10 +6,14 @@
 
 sprints:
   - number: 1
-    goal: "Users can sign up, log in, create a survey, and add questions"
-    total_points: 28
-    demo: "Sign up with email, see empty dashboard, create a survey, add text/choice/yes-no questions, see them in the builder"
+    goal: "Project deployed to Railway; users can sign up, log in, create a survey, and add questions — all live on a public URL"
+    total_points: 38
+    demo: "Visit Railway URL, sign up with email, see empty dashboard, create a survey, add text/choice/yes-no questions, see them in the builder — all on the live deployment"
     stories:
+      - { id: S0.1, points: 3, title: "Scaffold Next.js project with TypeScript and Prisma" }
+      - { id: S0.2, points: 2, title: "Provision Railway project with PostgreSQL" }
+      - { id: S0.3, points: 3, title: "Deploy to Railway with auto-deploy on push" }
+      - { id: S0.4, points: 2, title: "Run Prisma migrations on deploy" }
       - { id: S8.1, points: 5, title: "Creator sign-up" }
       - { id: S8.2, points: 3, title: "Creator login" }
       - { id: S8.3, points: 3, title: "Creator dashboard" }

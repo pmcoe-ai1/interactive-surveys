@@ -1,0 +1,255 @@
+sprint: 1
+goal: Project deployed to Railway; users can sign up, log in, create a survey, and add questions — all live on a public URL
+stories:
+  - id: S0.1
+    title: Scaffold Next.js project with TypeScript and Prisma
+    as_a: developer
+    i_want: the project scaffolded with Next.js, TypeScript, Prisma, and Tailwind CSS
+    so_that: all subsequent stories build on a working codebase
+    scenarios:
+      - id: SC0.1.1
+        given: a new project directory
+        when: I run the scaffold script
+        then: a Next.js 14 app with TypeScript, Prisma, and Tailwind CSS is created
+      - id: SC0.1.2
+        given: the scaffolded project
+        when: I run npm run dev
+        then: the app starts on localhost:3000 with a hello world page
+      - id: SC0.1.3
+        given: the scaffolded project
+        when: I run npx tsc --noEmit
+        then: there are zero TypeScript errors
+  - id: S0.2
+    title: Provision Railway project with PostgreSQL
+    as_a: developer
+    i_want: a Railway project with a PostgreSQL database
+    so_that: the app has persistent storage from day one
+    scenarios:
+      - id: SC0.2.1
+        given: a Railway account
+        when: I create a new project with a PostgreSQL plugin
+        then: the database is provisioned and DATABASE_URL is available
+      - id: SC0.2.2
+        given: the Railway project
+        when: I deploy the scaffolded app
+        then: it connects to the Railway PostgreSQL instance
+      - id: SC0.2.3
+        given: the database is provisioned
+        when: I run npx prisma migrate deploy
+        then: migrations run successfully against the Railway database
+  - id: S0.3
+    title: Deploy to Railway with auto-deploy on push
+    as_a: developer
+    i_want: the app deployed to Railway with auto-deploy from GitHub
+    so_that: every push produces a live URL
+    scenarios:
+      - id: SC0.3.1
+        given: the GitHub repo is connected to Railway
+        when: I push to main
+        then: Railway auto-builds and deploys the latest code
+      - id: SC0.3.2
+        given: a successful deployment
+        when: I visit the Railway URL
+        then: I see the running application
+      - id: SC0.3.3
+        given: a deployment fails
+        when: I check Railway logs
+        then: I see the build error and the previous version stays live
+  - id: S0.4
+    title: Run Prisma migrations on deploy
+    as_a: developer
+    i_want: database migrations to run automatically on each deploy
+    so_that: schema changes are applied without manual steps
+    scenarios:
+      - id: SC0.4.1
+        given: a new migration file exists
+        when: the deploy runs
+        then: prisma migrate deploy executes before the app starts
+      - id: SC0.4.2
+        given: no new migrations
+        when: the deploy runs
+        then: the migration step completes instantly with no changes
+      - id: SC0.4.3
+        given: a migration fails
+        when: the deploy runs
+        then: the deployment fails and the previous version stays live
+  - id: S8.1
+    title: Creator sign-up
+    as_a: new user
+    i_want: sign up with email or OAuth
+    so_that: I can create and manage surveys
+    scenarios:
+      - id: SC8.1.1
+        given: I am on the sign-up page
+        when: I enter my email and click Sign Up
+        then: I receive a magic link email and see a confirmation message
+      - id: SC8.1.2
+        given: I click "Sign up with Google"
+        when: I authorize the app
+        then: my account is created and I land on the dashboard
+      - id: SC8.1.3
+        given: I try to sign up with an email already in use
+        when: I submit
+        then: I see "An account with this email already exists"
+  - id: S8.2
+    title: Creator login
+    as_a: returning user
+    i_want: log in to access my surveys
+    so_that: I can manage my work
+    scenarios:
+      - id: SC8.2.1
+        given: I am on the login page
+        when: I enter my email and click Log In
+        then: I receive a magic link email
+      - id: SC8.2.2
+        given: I click the magic link in my email
+        when: it opens in my browser
+        then: I am logged in and redirected to the dashboard
+      - id: SC8.2.3
+        given: I click "Sign in with GitHub"
+        when: I authorize
+        then: I am logged in and see my dashboard
+  - id: S8.3
+    title: Creator dashboard
+    as_a: logged-in creator
+    i_want: see all my surveys in a dashboard
+    so_that: I can manage them
+    scenarios:
+      - id: SC8.3.1
+        given: I have 5 surveys
+        when: I open the dashboard
+        then: I see a list/grid of all 5 with title, response count, status, and last edited date
+      - id: SC8.3.2
+        given: I have no surveys
+        when: I open the dashboard
+        then: I see an empty state with a "Create your first survey" button
+      - id: SC8.3.3
+        given: I click on a survey card
+        when: the page loads
+        then: I am taken to the survey builder for that survey
+  - id: S8.4
+    title: Logout
+    as_a: logged-in creator
+    i_want: log out
+    so_that: my account is secure on shared devices
+    scenarios:
+      - id: SC8.4.1
+        given: I am logged in
+        when: I click Logout
+        then: my session ends and I am redirected to the login page
+      - id: SC8.4.2
+        given: I am logged out
+        when: I try to access the dashboard URL directly
+        then: I am redirected to the login page
+      - id: SC8.4.3
+        given: my session expires
+        when: I try to perform an action
+        then: I am prompted to log in again
+  - id: S1.1
+    title: Create new survey
+    as_a: survey creator
+    i_want: create a new blank survey with a title
+    so_that: I have a starting point for building my survey
+    scenarios:
+      - id: SC1.1.1
+        given: I am logged in
+        when: I click "Create Survey" and enter a title
+        then: a new survey is created and I see the empty builder
+      - id: SC1.1.2
+        given: I am logged in
+        when: I try to create a survey without a title
+        then: I see a validation error "Title is required"
+      - id: SC1.1.3
+        given: I am not logged in
+        when: I try to access the create survey page
+        then: I am redirected to the login page
+  - id: S1.2
+    title: Add questions to survey
+    as_a: survey creator
+    i_want: add questions from a type picker (10 types)
+    so_that: I can build the content of my survey
+    scenarios:
+      - id: SC1.2.1
+        given: I have an open survey in the builder
+        when: I click "Add Question" and select "Short Text"
+        then: a short text question is appended to the survey
+      - id: SC1.2.2
+        given: I have an open survey
+        when: I add a question of each of the 10 types
+        then: all 10 render correctly in the builder
+      - id: SC1.2.3
+        given: I have an open survey with 50 questions
+        when: I add another question
+        then: I see a warning "Surveys with more than 12 questions have lower completion rates"
+  - id: S2.1
+    title: Short text question
+    as_a: survey creator
+    i_want: add a short text question with optional validation (email, URL, number)
+    so_that: I can collect brief text answers from respondents
+    scenarios:
+      - id: SC2.1.1
+        given: I add a short text question
+        when: a respondent types an answer and presses Enter
+        then: the answer is saved and the next question appears
+      - id: SC2.1.2
+        given: I set validation to email
+        when: a respondent enters an invalid email
+        then: they see a validation error
+      - id: SC2.1.3
+        given: I set a placeholder text
+        when: the respondent sees the question
+        then: the placeholder appears in the input field
+  - id: S2.3
+    title: Single choice question
+    as_a: survey creator
+    i_want: add a single choice question with card-style or radio options
+    so_that: respondents can pick exactly one answer
+    scenarios:
+      - id: SC2.3.1
+        given: a single choice question with 4 options
+        when: a respondent clicks option B
+        then: option B is selected and others are deselected
+      - id: SC2.3.2
+        given: a single choice question
+        when: a respondent presses number key 2
+        then: the second option is selected (keyboard shortcut)
+      - id: SC2.3.3
+        given: a single choice with an "Other" option enabled
+        when: the respondent selects "Other"
+        then: a text input appears for their custom answer
+  - id: S2.6
+    title: Yes/No question
+    as_a: survey creator
+    i_want: add a yes/no binary question
+    so_that: respondents can make simple binary decisions
+    scenarios:
+      - id: SC2.6.1
+        given: a yes/no question
+        when: a respondent clicks Yes
+        then: Yes is selected and highlighted
+      - id: SC2.6.2
+        given: a yes/no question
+        when: a respondent presses Y or N on keyboard
+        then: the corresponding option is selected
+      - id: SC2.6.3
+        given: a yes/no question
+        when: the respondent changes their mind and clicks No
+        then: Yes is deselected and No is selected
+  - id: S2.9
+    title: Welcome screen
+    as_a: survey creator
+    i_want: add a welcome screen with title, description, and start button
+    so_that: I can introduce the survey to respondents
+    scenarios:
+      - id: SC2.9.1
+        given: a survey with a welcome screen
+        when: a respondent opens the survey link
+        then: they see the welcome title, description, and a Start button
+      - id: SC2.9.2
+        given: a welcome screen with a custom button label
+        when: the respondent sees it
+        then: the button shows the custom label instead of "Start"
+      - id: SC2.9.3
+        given: a welcome screen
+        when: the respondent clicks Start
+        then: the first question appears with a smooth transition

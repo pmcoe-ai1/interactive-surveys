@@ -1,0 +1,16 @@
+# Interactive Surveys — Sprint Execution Config
+# Used by: start-sprints.md (Step 0)
+
+working_dir: "/Users/alan/AI/projects/interactive-surveys"
+
+github:
+  owner: "pmcoe-ai1"
+  repo: "interactive-surveys"
+  workflow_name: "Sprint Pipeline"
+
+node_path: "/Users/alan/.local/node-v20.18.3-darwin-arm64/bin"
+
+jira:
+  site: "https://pmcoe-ai1.atlassian.net"
+  email: "info@pm-coe.com"
+  token_cmd: 'security find-generic-password -s "jira-api-token" -w'

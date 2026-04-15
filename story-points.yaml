@@ -3,6 +3,24 @@
 # Sizing criteria: scenario count, entity complexity, UI complexity, dependencies
 
 stories:
+  # E0: Infrastructure and Deployment
+  - id: S0.1
+    jira_key: ISURV-62
+    points: 3
+    rationale: "Scaffold Next.js + TS + Prisma + Tailwind — boilerplate but config-heavy"
+  - id: S0.2
+    jira_key: ISURV-63
+    points: 2
+    rationale: "Railway PostgreSQL provisioning — mostly config"
+  - id: S0.3
+    jira_key: ISURV-64
+    points: 3
+    rationale: "Railway auto-deploy from GitHub — needs Railway CLI or dashboard setup"
+  - id: S0.4
+    jira_key: ISURV-65
+    points: 2
+    rationale: "Auto-migrate on deploy — build script change"
+
   # E1: Survey Builder
   - id: S1.1
     jira_key: ISURV-11

@@ -1,0 +1,378 @@
+name: Sprint Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      sprint_number:
+        description: 'Sprint number'
+        required: true
+        default: '1'
+
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  coding-agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: surveys
+          POSTGRES_PASSWORD: surveys
+          POSTGRES_DB: surveys_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U surveys"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Validate pipeline inputs
+        run: node scripts/validate-all.js --skip-jira --sprint ${{ github.event.inputs.sprint_number }} || echo "WARN - validation failed, continuing"
+
+      - name: Create sprint branch
+        run: |
+          git checkout -b sprint-${{ github.event.inputs.sprint_number }}-$(date +%s)
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: "Phase 1: Prisma schema, API routes, services"
+        id: phase1
+        uses: anthropics/claude-code-action@39431830520a7ae6c0c572f11a7707e7043325e3
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            You are the Coding Agent for Sprint ${{ github.event.inputs.sprint_number }}, Phase 1.
+            DATABASE_URL: postgresql://surveys:surveys@localhost:5432/surveys_dev
+
+            This is an interactive survey tool (like Typeform) with OQAAT (one-question-at-a-time) UX.
+            Tech stack: Next.js 14 (App Router), TypeScript, Prisma, Tailwind CSS, deployed to Railway.
+
+            READ stories/sprint-${{ github.event.inputs.sprint_number }}.yaml — these are the stories to implement.
+            READ entities.yaml — these are the data entities.
+            READ prisma/schema.prisma — this is the current database schema.
+            READ src/app.ts if it exists — this is the current app entry point.
+
+            YOUR TASK — implement ALL stories in this sprint:
+
+            1. UPDATE prisma/schema.prisma if new entities or fields are needed.
+               Run: DATABASE_URL=postgresql://surveys:surveys@localhost:5432/surveys_dev npx prisma generate
+               Run: DATABASE_URL=postgresql://surveys:surveys@localhost:5432/surveys_dev npx prisma migrate dev --name sprint-${{ github.event.inputs.sprint_number }}
+
+            2. CREATE/UPDATE Next.js pages in src/app/ (App Router convention).
+               CREATE API routes in src/app/api/ — one per resource.
+               Each route must handle the scenarios defined in the stories.
+
+            3. CREATE service files in src/services/ — business logic separate from routes.
+
+            4. CREATE React components in src/components/ — one per UI element.
+               Use Tailwind CSS for styling. Support OQAAT transitions (200-300ms).
+               Keyboard navigation: Enter to advance, number keys for choices.
+
+            5. Run: npx tsc --noEmit — fix ALL type errors before finishing.
+
+            Do NOT write tests. Do NOT modify brd-skeleton.yaml. Phase 2 handles that.
+            Focus ONLY on working, compiling code that covers every scenario.
+          claude_args: |
+            --max-turns 100
+            --allowedTools Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(DATABASE_URL=*),Bash(cat:*),Bash(ls:*),Bash(mkdir:*),Bash(echo:*),Bash(kill:*),Bash(curl:*)
+          settings: |
+            {
+              "env": {
+                "DATABASE_URL": "postgresql://surveys:surveys@localhost:5432/surveys_dev"
+              }
+            }
+
+      - name: Commit Phase 1 progress
+        if: always()
+        run: |
+          git add -A
+          git diff --cached --quiet || git commit -m "feat: sprint ${{ github.event.inputs.sprint_number }} phase 1 — schema + routes + components"
+
+      - name: "Phase 2: BRD fill + compilation check"
+        id: phase2
+        if: steps.phase1.outcome == 'success'
+        uses: anthropics/claude-code-action@39431830520a7ae6c0c572f11a7707e7043325e3
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            You are the Coding Agent for Sprint ${{ github.event.inputs.sprint_number }}, Phase 2.
+
+            Phase 1 already wrote the code. Your job is to fill BRD sections and verify compilation.
+
+            1. READ stories/sprint-${{ github.event.inputs.sprint_number }}.yaml
+            2. READ brd-skeleton.yaml
+            3. For EACH story in this sprint, fill these BRD fields:
+               - scenarios: add coverageType (happy/edge/failure), expectedResult (true/false)
+               - glossary: add definitions for any entities referenced by these stories
+               - error codes: declare all error responses (HTTP status + error body)
+               - domainEvents: declare state change events (e.g. survey.created, question.added)
+            4. Write the updated brd-skeleton.yaml
+            5. Run: npx tsc --noEmit — if there are type errors from Phase 1, fix them.
+            6. Verify the app starts: DATABASE_URL=postgresql://surveys:surveys@localhost:5432/surveys_dev npx ts-node src/app.ts &
+               Wait 2 seconds, then: curl http://localhost:3000/health || curl http://localhost:3000/api/health
+               Kill the background process.
+          claude_args: |
+            --max-turns 50
+            --allowedTools Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(DATABASE_URL=*),Bash(cat:*),Bash(ls:*),Bash(mkdir:*),Bash(echo:*),Bash(kill:*),Bash(curl:*),Bash(sleep:*)
+          settings: |
+            {
+              "env": {
+                "DATABASE_URL": "postgresql://surveys:surveys@localhost:5432/surveys_dev"
+              }
+            }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sprint-code
+          path: |
+            .
+            !node_modules
+            !.git
+      - name: Push changes (non-fatal)
+        continue-on-error: true
+        run: |
+          git add -A
+          git diff --cached --quiet || git commit -m "feat: sprint ${{ github.event.inputs.sprint_number }} phase 2 — BRD + verify"
+          git push --set-upstream origin HEAD
+
+  testing-agent:
+    needs: coding-agent
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: sprint-code
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Make source code read-only
+        run: |
+          chmod -R a-w src/ || true
+          chmod -R a-w prisma/ || true
+      - name: Testing Agent writes tests
+        uses: anthropics/claude-code-action@39431830520a7ae6c0c572f11a7707e7043325e3
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            You are the Testing Agent for Sprint ${{ github.event.inputs.sprint_number }}.
+            This is an interactive survey tool (Next.js, Prisma, PostgreSQL).
+            READ-ONLY on src/ and prisma/. Do NOT modify files outside tests/.
+
+            Read stories/sprint-${{ github.event.inputs.sprint_number }}.yaml for scenarios.
+            Read src/ and prisma/schema.prisma to understand the code (READ ONLY).
+
+            Write tests in tests/sprint-${{ github.event.inputs.sprint_number }}/ directory.
+            Name test files descriptively based on the domain.
+
+            Requirements:
+            - Use supertest + Testcontainers (@testcontainers/postgresql) for real PostgreSQL
+            - Each describe block must include the scenario ID (e.g. "SC0.1.1")
+            - beforeAll: start PG container, set DATABASE_URL, run prisma migrate deploy
+            - afterAll: stop container
+            - Between tests: clean all DB tables with DELETE FROM
+            - At least one test per scenario
+            - Do NOT modify files outside tests/
+            - Do NOT run the tests — Job 3 runs them deterministically
+          claude_args: |
+            --max-turns 30
+            --allowedTools Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(npm:*),Bash(npx:*),Bash(cat:*),Bash(ls:*),Bash(mkdir:*)
+      - name: Restore permissions
+        if: always()
+        run: |
+          chmod -R u+w src/ || true
+          chmod -R u+w prisma/ || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sprint-code-with-tests
+          path: |
+            .
+            !node_modules
+            !.git
+
+  test-run:
+    needs: testing-agent
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: sprint-code-with-tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Generate Prisma Client
+        run: npx prisma generate
+      - name: Run tests (deterministic — no AI)
+        id: tests
+        run: |
+          set -o pipefail
+          if npx jest --ci --passWithNoTests --json --outputFile=test-results.json --forceExit 2>&1 | tee test-output.txt; then
+            echo "tests_passed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "tests_passed=false" >> "$GITHUB_OUTPUT"
+          fi
+        continue-on-error: true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            test-results.json
+            test-output.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sprint-code-tested
+          path: |
+            .
+            !node_modules
+            !.git
+      - name: Fail if tests failed
+        if: steps.tests.outputs.tests_passed == 'false'
+        run: exit 1
+
+  fix-loop:
+    needs: test-run
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: sprint-code-tested
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Fix and re-test
+        uses: anthropics/claude-code-action@39431830520a7ae6c0c572f11a7707e7043325e3
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Tests failed for Sprint ${{ github.event.inputs.sprint_number }}.
+            Read test-results.json and test-output.txt for failure details.
+
+            Fix ONLY files in src/. Do NOT modify anything in tests/.
+            The tests are the specification — if they fail, the code is wrong.
+
+            After each fix attempt:
+            1. npx tsc --noEmit
+            2. npx prisma generate
+            3. npx jest --passWithNoTests --json --outputFile=test-results.json --forceExit 2>&1 | tee test-output.txt
+
+            Max 3 attempts. If still failing after 3, report remaining failures.
+          claude_args: |
+            --max-turns 40
+            --allowedTools Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(cat:*),Bash(ls:*)
+      - name: Verify fixes (max 3 attempts)
+        id: verify
+        if: always()
+        run: |
+          npx prisma generate
+          for attempt in 1 2 3; do
+            echo "=== Test attempt $attempt of 3 ==="
+            if npx jest --ci --passWithNoTests --json --outputFile=test-results.json --forceExit 2>&1 | tee test-output.txt; then
+              echo "Tests passed on attempt $attempt"
+              echo "fix_succeeded=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "Attempt $attempt failed"
+            if [ "$attempt" -lt 3 ]; then
+              echo "Retrying in 5s..."
+              sleep 5
+            fi
+          done
+          echo "All 3 attempts failed"
+          echo "fix_succeeded=false" >> "$GITHUB_OUTPUT"
+          exit 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sprint-code-fixed
+          path: |
+            .
+            !node_modules
+            !.git
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-fixed
+          path: |
+            test-results.json
+            test-output.txt
+
+  review:
+    needs: [test-run, fix-loop]
+    if: >-
+      always() &&
+      (needs.test-run.result == 'success' || needs.fix-loop.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        if: needs.fix-loop.result == 'success'
+        with:
+          name: sprint-code-fixed
+      - uses: actions/download-artifact@v4
+        if: needs.fix-loop.result != 'success'
+        with:
+          name: sprint-code-tested
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Review Agent
+        uses: anthropics/claude-code-action@39431830520a7ae6c0c572f11a7707e7043325e3
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Review Agent for Sprint ${{ github.event.inputs.sprint_number }}. Tests passed.
+
+            This is an interactive survey tool (Next.js, Prisma, Tailwind CSS).
+
+            Read these files:
+            - stories/sprint-${{ github.event.inputs.sprint_number }}.yaml (scenarios)
+            - All files in src/ (source code)
+            - All files in tests/sprint-${{ github.event.inputs.sprint_number }}/ (test files)
+            - test-results.json (test outcomes)
+            - brd-skeleton.yaml (BRD sections filled this sprint)
+
+            Check:
+            1. Scenario coverage: every scenario ID has a matching passing test
+            2. Error codes: every error thrown in src/ is tested
+            3. Error handling: proper HTTP status codes, no unhandled rejections
+            4. Code quality: no hardcoded values, proper separation of concerns
+            5. BRD consistency: filled sections match the code
+            6. OQAAT UX: keyboard nav, transitions, progress bar (if applicable this sprint)
+
+            Write review to review-report.md with:
+            - SCENARIO COVERAGE: table of scenario ID → test name → PASS/FAIL
+            - FINDINGS: numbered list (severity: HIGH/MEDIUM/LOW)
+            - SUMMARY: one paragraph assessment
+          claude_args: |
+            --max-turns 20
+            --allowedTools Read,Glob,Grep,LS,Write,Edit
+      - uses: actions/upload-artifact@v4
+        with:
+          name: review-report
+          path: review-report.md
