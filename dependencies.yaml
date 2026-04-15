@@ -1,0 +1,133 @@
+# Story Dependencies — Interactive Surveys
+# Format: story depends_on [list of prerequisite stories]
+
+dependencies:
+  # E0: Infrastructure and Deployment
+  - story: S0.1
+    depends_on: []  # Foundation — no deps
+  - story: S0.2
+    depends_on: [S0.1]  # Need scaffolded project
+  - story: S0.3
+    depends_on: [S0.1, S0.2]  # Need project + DB
+  - story: S0.4
+    depends_on: [S0.3]  # Need deployment pipeline
+
+  # E1: Survey Builder
+  - story: S1.1
+    depends_on: [S0.3, S8.3]  # Need deployment + auth + dashboard
+  - story: S1.2
+    depends_on: [S1.1]  # Need a survey to add questions to
+  - story: S1.3
+    depends_on: [S1.2]  # Need questions to edit
+  - story: S1.4
+    depends_on: [S1.2]  # Need multiple questions to reorder
+  - story: S1.5
+    depends_on: [S1.2]  # Need questions to delete
+  - story: S1.6
+    depends_on: [S1.2]  # Need questions to duplicate
+  - story: S1.7
+    depends_on: [S1.2, S3.1]  # Need questions + OQAAT to preview
+  - story: S1.8
+    depends_on: [S1.2]  # Need questions; generates basic link (S7.1 extends it later)
+
+  # E2: Question Types
+  - story: S2.1
+    depends_on: [S1.2]  # Need add-question flow
+  - story: S2.2
+    depends_on: [S1.2]
+  - story: S2.3
+    depends_on: [S1.2]
+  - story: S2.4
+    depends_on: [S1.2]
+  - story: S2.5
+    depends_on: [S1.2]
+  - story: S2.6
+    depends_on: [S1.2]
+  - story: S2.7
+    depends_on: [S1.2]
+  - story: S2.8
+    depends_on: [S1.2]
+  - story: S2.9
+    depends_on: [S1.2]
+  - story: S2.10
+    depends_on: [S1.2, S5.1]  # Thank-you screen needs response submission
+
+  # E3: OQAAT Respondent Experience
+  - story: S3.1
+    depends_on: [S2.1, S2.3]  # Need at least text + choice questions
+  - story: S3.2
+    depends_on: [S3.1]
+  - story: S3.3
+    depends_on: [S3.1]
+  - story: S3.4
+    depends_on: [S3.1]
+  - story: S3.5
+    depends_on: [S3.1]
+
+  # E4: Conditional Logic
+  - story: S4.1
+    depends_on: [S1.2, S2.3]  # Need questions + choice type for conditions
+  - story: S4.2
+    depends_on: [S4.1]
+  - story: S4.3
+    depends_on: [S4.1, S1.7]  # Need logic + preview
+
+  # E5: Response Collection
+  - story: S5.1
+    depends_on: [S3.1]  # Need OQAAT respondent flow to submit
+  - story: S5.2
+    depends_on: [S5.1]
+  - story: S5.3
+    depends_on: [S5.1]
+  - story: S5.4
+    depends_on: [S5.1]
+
+  # E6: Analytics Dashboard
+  - story: S6.1
+    depends_on: [S5.1, S8.3]  # Need responses + dashboard
+  - story: S6.2
+    depends_on: [S6.1]
+  - story: S6.3
+    depends_on: [S6.1]
+  - story: S6.4
+    depends_on: [S6.1]
+
+  # E7: Sharing and Distribution
+  - story: S7.1
+    depends_on: [S1.8]  # Need publish flow
+  - story: S7.2
+    depends_on: [S7.1]
+  - story: S7.3
+    depends_on: [S7.1]
+  - story: S7.4
+    depends_on: [S7.1]
+
+  # E8: Authentication and Creator Dashboard
+  - story: S8.1
+    depends_on: [S0.3]  # Need deployed app to sign up against
+  - story: S8.2
+    depends_on: [S8.1]
+  - story: S8.3
+    depends_on: [S8.2]
+  - story: S8.4
+    depends_on: [S8.2]
+
+  # E9: Survey Settings and Themes
+  - story: S9.1
+    depends_on: [S1.8]  # Need published survey
+  - story: S9.2
+    depends_on: [S9.1, S5.1]
+  - story: S9.3
+    depends_on: [S9.1]
+  - story: S9.4
+    depends_on: [S3.1]  # Need respondent view for themes
+  - story: S9.5
+    depends_on: [S2.10]  # Need thank-you screen
+
+  # E10: Templates and Onboarding
+  - story: S10.1
+    depends_on: [S1.1, S8.3]  # Need create flow + dashboard
+  - story: S10.2
+    depends_on: [S10.1, S1.2]
+  - story: S10.3
+    depends_on: [S8.1, S8.3]  # Need sign-up + dashboard

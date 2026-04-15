@@ -1,0 +1,87 @@
+# E8: Authentication and Creator Dashboard — User Stories
+# Epic: ISURV-8
+
+stories:
+  - id: S8.1
+    jira_key: ISURV-49
+    epic: E8
+    title: Creator sign-up
+    as_a: new user
+    i_want: sign up with email or OAuth
+    so_that: I can create and manage surveys
+    scenarios:
+      - id: SC8.1.1
+        given: I am on the sign-up page
+        when: I enter my email and click Sign Up
+        then: I receive a magic link email and see a confirmation message
+      - id: SC8.1.2
+        given: I click "Sign up with Google"
+        when: I authorize the app
+        then: my account is created and I land on the dashboard
+      - id: SC8.1.3
+        given: I try to sign up with an email already in use
+        when: I submit
+        then: I see "An account with this email already exists"
+
+  - id: S8.2
+    jira_key: ISURV-50
+    epic: E8
+    title: Creator login
+    as_a: returning user
+    i_want: log in to access my surveys
+    so_that: I can manage my work
+    scenarios:
+      - id: SC8.2.1
+        given: I am on the login page
+        when: I enter my email and click Log In
+        then: I receive a magic link email
+      - id: SC8.2.2
+        given: I click the magic link in my email
+        when: it opens in my browser
+        then: I am logged in and redirected to the dashboard
+      - id: SC8.2.3
+        given: I click "Sign in with GitHub"
+        when: I authorize
+        then: I am logged in and see my dashboard
+
+  - id: S8.3
+    jira_key: ISURV-51
+    epic: E8
+    title: Creator dashboard
+    as_a: logged-in creator
+    i_want: see all my surveys in a dashboard
+    so_that: I can manage them
+    scenarios:
+      - id: SC8.3.1
+        given: I have 5 surveys
+        when: I open the dashboard
+        then: I see a list/grid of all 5 with title, response count, status, and last edited date
+      - id: SC8.3.2
+        given: I have no surveys
+        when: I open the dashboard
+        then: I see an empty state with a "Create your first survey" button
+      - id: SC8.3.3
+        given: I click on a survey card
+        when: the page loads
+        then: I am taken to the survey builder for that survey
+
+  - id: S8.4
+    jira_key: ISURV-52
+    epic: E8
+    title: Logout
+    as_a: logged-in creator
+    i_want: log out
+    so_that: my account is secure on shared devices
+    scenarios:
+      - id: SC8.4.1
+        given: I am logged in
+        when: I click Logout
+        then: my session ends and I am redirected to the login page
+      - id: SC8.4.2
+        given: I am logged out
+        when: I try to access the dashboard URL directly
+        then: I am redirected to the login page
+      - id: SC8.4.3
+        given: my session expires
+        when: I try to perform an action
+        then: I am prompted to log in again

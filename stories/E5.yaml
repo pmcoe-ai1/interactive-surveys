@@ -1,0 +1,87 @@
+# E5: Response Collection — User Stories
+# Epic: ISURV-5
+
+stories:
+  - id: S5.1
+    jira_key: ISURV-37
+    epic: E5
+    title: Submit complete response
+    as_a: respondent
+    i_want: my answers saved when I complete the survey
+    so_that: my feedback is recorded
+    scenarios:
+      - id: SC5.1.1
+        given: I answer all questions
+        when: I click Submit on the last question
+        then: all my answers are saved as a single response record with a timestamp
+      - id: SC5.1.2
+        given: I submit a response
+        when: the save completes
+        then: I see the thank-you screen
+      - id: SC5.1.3
+        given: the server is temporarily unavailable
+        when: I click Submit
+        then: my answers are saved locally and retried automatically
+
+  - id: S5.2
+    jira_key: ISURV-38
+    epic: E5
+    title: Partial response capture
+    as_a: respondent
+    i_want: my progress saved if I leave partway through
+    so_that: I can resume later
+    scenarios:
+      - id: SC5.2.1
+        given: I answer questions 1-5 of a 10-question survey
+        when: I close the browser tab
+        then: my partial answers are saved
+      - id: SC5.2.2
+        given: I have a partial response saved
+        when: I reopen the survey link
+        then: I am offered to resume from where I left off
+      - id: SC5.2.3
+        given: I choose not to resume
+        when: I click "Start Over"
+        then: my partial response is discarded and I begin fresh
+
+  - id: S5.3
+    jira_key: ISURV-39
+    epic: E5
+    title: Anonymous and identified responses
+    as_a: survey creator
+    i_want: choose whether responses are anonymous or identified
+    so_that: I can balance privacy with accountability
+    scenarios:
+      - id: SC5.3.1
+        given: anonymous mode is enabled
+        when: a respondent submits
+        then: no identifying information is stored with the response
+      - id: SC5.3.2
+        given: I require email
+        when: a respondent reaches the email question
+        then: it is marked required and they cannot skip it
+      - id: SC5.3.3
+        given: identified mode is on
+        when: I view responses
+        then: each response shows the respondent's email
+
+  - id: S5.4
+    jira_key: ISURV-40
+    epic: E5
+    title: Duplicate prevention
+    as_a: survey creator
+    i_want: prevent the same person from submitting twice
+    so_that: results are not skewed
+    scenarios:
+      - id: SC5.4.1
+        given: duplicate prevention is enabled
+        when: a respondent submits and tries again from the same browser
+        then: they see "You have already completed this survey"
+      - id: SC5.4.2
+        given: duplicate prevention is disabled
+        when: a respondent submits twice
+        then: both responses are recorded
+      - id: SC5.4.3
+        given: a respondent clears their cookies
+        when: they try to submit again with prevention enabled
+        then: the duplicate check is best-effort (cookie-based)

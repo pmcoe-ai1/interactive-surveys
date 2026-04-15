@@ -1,0 +1,87 @@
+# E6: Analytics Dashboard — User Stories
+# Epic: ISURV-6
+
+stories:
+  - id: S6.1
+    jira_key: ISURV-41
+    epic: E6
+    title: Response summary overview
+    as_a: survey creator
+    i_want: see a summary of all responses at a glance
+    so_that: I can understand overall results
+    scenarios:
+      - id: SC6.1.1
+        given: a survey with 50 responses
+        when: I open the analytics dashboard
+        then: I see total responses, completion rate, and average completion time
+      - id: SC6.1.2
+        given: a survey with 0 responses
+        when: I open analytics
+        then: I see an empty state with "No responses yet"
+      - id: SC6.1.3
+        given: responses are coming in
+        when: I watch the dashboard
+        then: the counts update in real-time via SSE
+
+  - id: S6.2
+    jira_key: ISURV-42
+    epic: E6
+    title: Per-question breakdown
+    as_a: survey creator
+    i_want: see results broken down by question
+    so_that: I can analyze each question's responses
+    scenarios:
+      - id: SC6.2.1
+        given: a single choice question with responses
+        when: I view its breakdown
+        then: I see a bar chart showing the count and percentage per option
+      - id: SC6.2.2
+        given: a text question with responses
+        when: I view its breakdown
+        then: I see a scrollable list of all text answers
+      - id: SC6.2.3
+        given: a rating question
+        when: I view its breakdown
+        then: I see the average rating and a distribution histogram
+
+  - id: S6.3
+    jira_key: ISURV-43
+    epic: E6
+    title: Completion funnel
+    as_a: survey creator
+    i_want: see where respondents drop off
+    so_that: I can identify problematic questions
+    scenarios:
+      - id: SC6.3.1
+        given: a 10-question survey with partial responses
+        when: I view the funnel
+        then: I see a step chart showing how many respondents reached each question
+      - id: SC6.3.2
+        given: question 5 has a 40% drop-off
+        when: I view the funnel
+        then: question 5 is highlighted in red as a drop-off point
+      - id: SC6.3.3
+        given: all respondents complete the survey
+        when: I view the funnel
+        then: all steps show 100%
+
+  - id: S6.4
+    jira_key: ISURV-44
+    epic: E6
+    title: Export responses
+    as_a: survey creator
+    i_want: export all responses as CSV or JSON
+    so_that: I can analyze data in external tools
+    scenarios:
+      - id: SC6.4.1
+        given: a survey with responses
+        when: I click Export CSV
+        then: a CSV file downloads with one row per response and one column per question
+      - id: SC6.4.2
+        given: a survey with responses
+        when: I click Export JSON
+        then: a JSON file downloads with the full response data
+      - id: SC6.4.3
+        given: I apply a date filter
+        when: I export
+        then: only the filtered responses are included in the export

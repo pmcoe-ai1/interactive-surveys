@@ -1,0 +1,251 @@
+// Interactive Surveys — Prisma Schema
+// Generated from entities.yaml (Step 4a)
+// Deploy target: Railway.com (PostgreSQL)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────
+
+enum AuthProvider {
+  email
+  google
+  github
+}
+
+enum SurveyStatus {
+  draft
+  live
+  closed
+}
+
+enum SurveyTheme {
+  default_theme @map("default")
+  minimal
+  bold
+  dark
+  pastel
+}
+
+enum QuestionType {
+  short_text
+  long_text
+  single_choice
+  multiple_choice
+  rating
+  yes_no
+  dropdown
+  date
+  welcome_screen
+  thank_you_screen
+}
+
+enum ValidationRule {
+  none
+  email
+  url
+  number
+}
+
+enum RatingStyle {
+  stars
+  numeric
+  emoji
+}
+
+enum LogicRuleType {
+  skip_to
+  show_if
+  hide_if
+}
+
+enum ResponseStatus {
+  partial
+  complete
+}
+
+enum TemplateCategory {
+  nps
+  csat
+  event_feedback
+  product_feedback
+  employee_pulse
+}
+
+// ─── Models ──────────────────────────────────────────────
+
+model User {
+  id                   String       @id @default(uuid())
+  email                String       @unique
+  name                 String?
+  authProvider         AuthProvider
+  onboardingCompleted  Boolean      @default(false)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  surveys              Survey[]
+
+  @@map("users")
+}
+
+model Survey {
+  id                   String        @id @default(uuid())
+  title                String
+  description          String?
+  slug                 String?       @unique
+  status               SurveyStatus  @default(draft)
+  theme                SurveyTheme   @default(default_theme)
+  responseLimit        Int?
+  responseCount        Int           @default(0)
+  duplicatePrevention  Boolean       @default(false)
+  anonymousResponses   Boolean       @default(true)
+  requireEmail         Boolean       @default(false)
+  thankYouMessage      String?
+  redirectUrl          String?
+  redirectDelay        Int           @default(5)
+  openAt               DateTime?
+  closeAt              DateTime?
+  templateId           String?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  userId               String
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  questions            Question[]
+  responses            Response[]
+  logicRules           LogicRule[]
+
+  @@index([userId])
+  @@index([slug])
+  @@index([status])
+  @@map("surveys")
+}
+
+model Question {
+  id                   String        @id @default(uuid())
+  type                 QuestionType
+  title                String
+  description          String?
+  required             Boolean       @default(false)
+  order                Int
+  placeholder          String?
+  validation           ValidationRule? @default(none)
+  charLimit            Int?
+  minSelections        Int?
+  maxSelections        Int?
+  ratingStyle          RatingStyle?
+  ratingMax            Int?          @default(5)
+  searchable           Boolean       @default(false)
+  minDate              DateTime?
+  maxDate              DateTime?
+  allowOther           Boolean       @default(false)
+  buttonLabel          String?
+  ctaUrl               String?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  surveyId             String
+  survey               Survey        @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  options              QuestionOption[]
+  answers              Answer[]
+  sourceLogicRules     LogicRule[]   @relation("SourceQuestion")
+  targetLogicRules     LogicRule[]   @relation("TargetQuestion")
+
+  @@index([surveyId, order])
+  @@map("questions")
+}
+
+model QuestionOption {
+  id                   String        @id @default(uuid())
+  text                 String
+  order                Int
+  createdAt            DateTime      @default(now())
+
+  questionId           String
+  question             Question      @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId, order])
+  @@map("question_options")
+}
+
+model LogicRule {
+  id                   String        @id @default(uuid())
+  type                 LogicRuleType
+  conditionValue       String
+  createdAt            DateTime      @default(now())
+
+  surveyId             String
+  survey               Survey        @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  sourceQuestionId     String
+  sourceQuestion       Question      @relation("SourceQuestion", fields: [sourceQuestionId], references: [id], onDelete: Cascade)
+
+  targetQuestionId     String
+  targetQuestion       Question      @relation("TargetQuestion", fields: [targetQuestionId], references: [id], onDelete: Cascade)
+
+  @@index([surveyId])
+  @@index([sourceQuestionId])
+  @@map("logic_rules")
+}
+
+model Response {
+  id                   String         @id @default(uuid())
+  status               ResponseStatus @default(partial)
+  respondentEmail      String?
+  browserFingerprint   String?
+  startedAt            DateTime       @default(now())
+  completedAt          DateTime?
+  lastQuestionIndex    Int            @default(0)
+  completionTimeSeconds Int?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  surveyId             String
+  survey               Survey         @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  answers              Answer[]
+
+  @@index([surveyId])
+  @@index([surveyId, browserFingerprint])
+  @@index([status])
+  @@map("responses")
+}
+
+model Answer {
+  id                   String        @id @default(uuid())
+  value                String?
+  selectedOptions      Json?
+  numericValue         Float?
+  dateValue            DateTime?
+  createdAt            DateTime      @default(now())
+
+  responseId           String
+  response             Response      @relation(fields: [responseId], references: [id], onDelete: Cascade)
+
+  questionId           String
+  question             Question      @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([responseId])
+  @@index([questionId])
+  @@map("answers")
+}
+
+model SurveyTemplate {
+  id                   String           @id
+  name                 String
+  description          String
+  category             TemplateCategory
+  questionsJson        Json
+  previewImageUrl      String?
+  createdAt            DateTime         @default(now())
+
+  @@map("survey_templates")
+}

@@ -1,0 +1,108 @@
+# E3: OQAAT Respondent Experience — User Stories
+# Epic: ISURV-3
+
+stories:
+  - id: S3.1
+    jira_key: ISURV-29
+    epic: E3
+    title: One-question-at-a-time navigation
+    as_a: respondent
+    i_want: see one question at a time with smooth transitions
+    so_that: I can focus on each question without distraction
+    scenarios:
+      - id: SC3.1.1
+        given: I open a published survey
+        when: the first question loads
+        then: I see only one question centered on screen with a progress bar
+      - id: SC3.1.2
+        given: I answer a question
+        when: I press Enter or click Next
+        then: the current question slides out and the next slides in (200-300ms transition)
+      - id: SC3.1.3
+        given: I am on question 5 of 10
+        when: I look at the progress bar
+        then: it shows 50% completion
+
+  - id: S3.2
+    jira_key: ISURV-30
+    epic: E3
+    title: Keyboard navigation
+    as_a: respondent
+    i_want: navigate the survey using keyboard shortcuts
+    so_that: I can complete it quickly without a mouse
+    scenarios:
+      - id: SC3.2.1
+        given: I am on a question
+        when: I press Enter
+        then: I advance to the next question
+      - id: SC3.2.2
+        given: I am on a single choice question with 4 options
+        when: I press 1/2/3/4
+        then: the corresponding option is selected
+      - id: SC3.2.3
+        given: I am on question 3
+        when: I press Shift+Tab or Up arrow
+        then: I go back to question 2
+
+  - id: S3.3
+    jira_key: ISURV-31
+    epic: E3
+    title: Mobile-first responsive layout
+    as_a: respondent on a mobile device
+    i_want: the survey to be fully usable on a small screen
+    so_that: I can complete it on my phone
+    scenarios:
+      - id: SC3.3.1
+        given: I open a survey on a 375px-wide screen
+        when: I see a question
+        then: all tap targets are at least 44px and text is readable without zooming
+      - id: SC3.3.2
+        given: I am on a choice question on mobile
+        when: I tap an option
+        then: it selects immediately with visual feedback
+      - id: SC3.3.3
+        given: I am taking a survey on mobile
+        when: I scroll
+        then: the question stays centered and navigation buttons are always visible
+
+  - id: S3.4
+    jira_key: ISURV-32
+    epic: E3
+    title: Progress indicator
+    as_a: respondent
+    i_want: see how far I am in the survey
+    so_that: I know how much is left
+    scenarios:
+      - id: SC3.4.1
+        given: a 10-question survey
+        when: I complete question 3
+        then: the progress bar shows 3/10 or 30%
+      - id: SC3.4.2
+        given: a survey with conditional logic that skips questions
+        when: questions are skipped
+        then: the progress bar adjusts to reflect the actual remaining count
+      - id: SC3.4.3
+        given: I am on the last question
+        when: I see the progress bar
+        then: it shows nearly complete and the submit button appears
+
+  - id: S3.5
+    jira_key: ISURV-33
+    epic: E3
+    title: Transition animations
+    as_a: respondent
+    i_want: smooth animations between questions
+    so_that: the experience feels polished and guided
+    scenarios:
+      - id: SC3.5.1
+        given: I advance to the next question
+        when: the transition plays
+        then: the current question fades/slides up and the next fades/slides in within 200-300ms
+      - id: SC3.5.2
+        given: I go back to a previous question
+        when: the transition plays
+        then: the animation direction reverses (slides down instead of up)
+      - id: SC3.5.3
+        given: I have prefers-reduced-motion enabled
+        when: I navigate between questions
+        then: transitions are instant with no animation

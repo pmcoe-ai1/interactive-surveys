@@ -1,0 +1,9 @@
+# Velocity — Interactive Surveys
+# Sprint 1 calibration — no historical data
+
+initial_capacity: 30
+total_points: 148
+estimated_sprints: 5
+estimated_timeline: "10 weeks"
+sprint_duration: "2 weeks"
+note: "Calibration sprint — adjust after Sprint 1 actual throughput. 30 points is conservative for a single AI-assisted developer."

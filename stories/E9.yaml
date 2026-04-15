@@ -1,0 +1,108 @@
+# E9: Survey Settings and Themes — User Stories
+# Epic: ISURV-9
+
+stories:
+  - id: S9.1
+    jira_key: ISURV-53
+    epic: E9
+    title: Open/close survey
+    as_a: survey creator
+    i_want: open and close my survey
+    so_that: I can control when respondents can submit
+    scenarios:
+      - id: SC9.1.1
+        given: a published survey
+        when: I toggle it to Closed
+        then: respondents see a "This survey is closed" message
+      - id: SC9.1.2
+        given: a closed survey
+        when: I toggle it to Open
+        then: respondents can submit again
+      - id: SC9.1.3
+        given: I close a survey
+        when: I view the dashboard
+        then: the status shows "Closed"
+
+  - id: S9.2
+    jira_key: ISURV-54
+    epic: E9
+    title: Response limit
+    as_a: survey creator
+    i_want: set a maximum number of responses
+    so_that: the survey auto-closes after the limit
+    scenarios:
+      - id: SC9.2.1
+        given: I set a response limit of 100
+        when: the 100th response is submitted
+        then: the survey auto-closes
+      - id: SC9.2.2
+        given: the survey has 99/100 responses
+        when: a respondent submits
+        then: they see the thank-you screen and the survey closes for the next visitor
+      - id: SC9.2.3
+        given: no response limit is set
+        when: responses come in
+        then: the survey stays open indefinitely
+
+  - id: S9.3
+    jira_key: ISURV-55
+    epic: E9
+    title: Schedule open/close dates
+    as_a: survey creator
+    i_want: schedule when my survey opens and closes
+    so_that: it runs during a specific window
+    scenarios:
+      - id: SC9.3.1
+        given: I set open date to April 20 and close date to April 30
+        when: it is April 19
+        then: respondents see "This survey is not yet open"
+      - id: SC9.3.2
+        given: the close date passes
+        when: a respondent visits
+        then: they see "This survey is closed"
+      - id: SC9.3.3
+        given: I set only an open date with no close date
+        when: the open date arrives
+        then: the survey opens and stays open
+
+  - id: S9.4
+    jira_key: ISURV-56
+    epic: E9
+    title: Visual themes
+    as_a: survey creator
+    i_want: choose from 3-5 visual themes
+    so_that: my survey matches my brand aesthetic
+    scenarios:
+      - id: SC9.4.1
+        given: I am in survey settings
+        when: I open the theme picker
+        then: I see 5 theme previews (Default, Minimal, Bold, Dark, Pastel)
+      - id: SC9.4.2
+        given: I select the Dark theme
+        when: a respondent opens the survey
+        then: the survey renders with the dark color scheme
+      - id: SC9.4.3
+        given: I switch themes
+        when: I preview the survey
+        then: the preview updates to show the new theme immediately
+
+  - id: S9.5
+    jira_key: ISURV-57
+    epic: E9
+    title: Custom thank-you and redirect
+    as_a: survey creator
+    i_want: customize the thank-you message and optionally redirect respondents
+    so_that: the completion experience fits my needs
+    scenarios:
+      - id: SC9.5.1
+        given: I set a custom thank-you message
+        when: a respondent completes the survey
+        then: they see my custom message instead of the default
+      - id: SC9.5.2
+        given: I set a redirect URL
+        when: a respondent completes the survey
+        then: they are redirected to that URL after 5 seconds
+      - id: SC9.5.3
+        given: I set both a custom message and redirect
+        when: a respondent completes
+        then: they see the message with a countdown before redirect

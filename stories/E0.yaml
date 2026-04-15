@@ -1,0 +1,87 @@
+# E0: Infrastructure and Deployment — User Stories
+# Epic: ISURV-61
+
+stories:
+  - id: S0.1
+    jira_key: ISURV-62
+    epic: E0
+    title: Scaffold Next.js project with TypeScript and Prisma
+    as_a: developer
+    i_want: the project scaffolded with Next.js, TypeScript, Prisma, and Tailwind CSS
+    so_that: all subsequent stories build on a working codebase
+    scenarios:
+      - id: SC0.1.1
+        given: a new project directory
+        when: I run the scaffold script
+        then: a Next.js 14 app with TypeScript, Prisma, and Tailwind CSS is created
+      - id: SC0.1.2
+        given: the scaffolded project
+        when: I run npm run dev
+        then: the app starts on localhost:3000 with a hello world page
+      - id: SC0.1.3
+        given: the scaffolded project
+        when: I run npx tsc --noEmit
+        then: there are zero TypeScript errors
+
+  - id: S0.2
+    jira_key: ISURV-63
+    epic: E0
+    title: Provision Railway project with PostgreSQL
+    as_a: developer
+    i_want: a Railway project with a PostgreSQL database
+    so_that: the app has persistent storage from day one
+    scenarios:
+      - id: SC0.2.1
+        given: a Railway account
+        when: I create a new project with a PostgreSQL plugin
+        then: the database is provisioned and DATABASE_URL is available
+      - id: SC0.2.2
+        given: the Railway project
+        when: I deploy the scaffolded app
+        then: it connects to the Railway PostgreSQL instance
+      - id: SC0.2.3
+        given: the database is provisioned
+        when: I run npx prisma migrate deploy
+        then: migrations run successfully against the Railway database
+
+  - id: S0.3
+    jira_key: ISURV-64
+    epic: E0
+    title: Deploy to Railway with auto-deploy on push
+    as_a: developer
+    i_want: the app deployed to Railway with auto-deploy from GitHub
+    so_that: every push produces a live URL
+    scenarios:
+      - id: SC0.3.1
+        given: the GitHub repo is connected to Railway
+        when: I push to main
+        then: Railway auto-builds and deploys the latest code
+      - id: SC0.3.2
+        given: a successful deployment
+        when: I visit the Railway URL
+        then: I see the running application
+      - id: SC0.3.3
+        given: a deployment fails
+        when: I check Railway logs
+        then: I see the build error and the previous version stays live
+
+  - id: S0.4
+    jira_key: ISURV-65
+    epic: E0
+    title: Run Prisma migrations on deploy
+    as_a: developer
+    i_want: database migrations to run automatically on each deploy
+    so_that: schema changes are applied without manual steps
+    scenarios:
+      - id: SC0.4.1
+        given: a new migration file exists
+        when: the deploy runs
+        then: prisma migrate deploy executes before the app starts
+      - id: SC0.4.2
+        given: no new migrations
+        when: the deploy runs
+        then: the migration step completes instantly with no changes
+      - id: SC0.4.3
+        given: a migration fails
+        when: the deploy runs
+        then: the deployment fails and the previous version stays live

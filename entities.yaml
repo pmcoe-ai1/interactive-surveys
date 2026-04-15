@@ -1,0 +1,376 @@
+# Entity Model — Extracted from 150 scenarios
+# Source: stories/E1-E10.yaml Given/When/Then clauses
+# Method: Deterministic noun extraction + AI field type assignment
+
+entities:
+  - name: User
+    description: A survey creator who signs up, logs in, and manages surveys
+    source_stories: [S8.1, S8.2, S8.3, S8.4]
+    fields:
+      - name: id
+        type: uuid
+        primary: true
+      - name: email
+        type: string
+        unique: true
+        required: true
+      - name: name
+        type: string
+        nullable: true
+      - name: authProvider
+        type: enum
+        values: [email, google, github]
+        required: true
+      - name: onboardingCompleted
+        type: boolean
+        default: false
+      - name: createdAt
+        type: datetime
+        required: true
+      - name: updatedAt
+        type: datetime
+        required: true
+    relationships:
+      - type: has_many
+        target: Survey
+
+  - name: Survey
+    description: A survey created by a user, containing questions and settings
+    source_stories: [S1.1, S1.8, S9.1, S9.2, S9.3, S9.4, S9.5]
+    fields:
+      - name: id
+        type: uuid
+        primary: true
+      - name: title
+        type: string
+        required: true
+      - name: description
+        type: string
+        nullable: true
+      - name: slug
+        type: string
+        unique: true
+        nullable: true
+      - name: status
+        type: enum
+        values: [draft, live, closed]
+        default: draft
+      - name: theme
+        type: enum
+        values: [default, minimal, bold, dark, pastel]
+        default: default
+      - name: responseLimit
+        type: integer
+        nullable: true
+      - name: responseCount
+        type: integer
+        default: 0
+      - name: duplicatePrevention
+        type: boolean
+        default: false
+      - name: anonymousResponses
+        type: boolean
+        default: true
+      - name: requireEmail
+        type: boolean
+        default: false
+      - name: thankYouMessage
+        type: string
+        nullable: true
+      - name: redirectUrl
+        type: string
+        nullable: true
+      - name: redirectDelay
+        type: integer
+        default: 5
+      - name: openAt
+        type: datetime
+        nullable: true
+      - name: closeAt
+        type: datetime
+        nullable: true
+      - name: templateId
+        type: string
+        nullable: true
+      - name: createdAt
+        type: datetime
+        required: true
+      - name: updatedAt
+        type: datetime
+        required: true
+    relationships:
+      - type: belongs_to
+        target: User
+        field: userId
+      - type: has_many
+        target: Question
+      - type: has_many
+        target: Response
+      - type: has_many
+        target: LogicRule
+
+  - name: Question
+    description: A single question within a survey, one of 10 types
+    source_stories: [S1.2, S1.3, S1.4, S1.5, S1.6, S2.1, S2.2, S2.3, S2.4, S2.5, S2.6, S2.7, S2.8, S2.9, S2.10]
+    fields:
+      - name: id
+        type: uuid
+        primary: true
+      - name: type
+        type: enum
+        values: [short_text, long_text, single_choice, multiple_choice, rating, yes_no, dropdown, date, welcome_screen, thank_you_screen]
+        required: true
+      - name: title
+        type: string
+        required: true
+      - name: description
+        type: string
+        nullable: true
+      - name: required
+        type: boolean
+        default: false
+      - name: order
+        type: integer
+        required: true
+      - name: placeholder
+        type: string
+        nullable: true
+      - name: validation
+        type: enum
+        values: [none, email, url, number]
+        default: none
+        nullable: true
+      - name: charLimit
+        type: integer
+        nullable: true
+      - name: minSelections
+        type: integer
+        nullable: true
+      - name: maxSelections
+        type: integer
+        nullable: true
+      - name: ratingStyle
+        type: enum
+        values: [stars, numeric, emoji]
+        nullable: true
+      - name: ratingMax
+        type: integer
+        default: 5
+        nullable: true
+      - name: searchable
+        type: boolean
+        default: false
+      - name: minDate
+        type: datetime
+        nullable: true
+      - name: maxDate
+        type: datetime
+        nullable: true
+      - name: allowOther
+        type: boolean
+        default: false
+      - name: buttonLabel
+        type: string
+        nullable: true
+      - name: ctaUrl
+        type: string
+        nullable: true
+      - name: createdAt
+        type: datetime
+        required: true
+      - name: updatedAt
+        type: datetime
+        required: true
+    relationships:
+      - type: belongs_to
+        target: Survey
+        field: surveyId
+      - type: has_many
+        target: QuestionOption
+      - type: has_many
+        target: Answer
+      - type: has_many
+        target: LogicRule
+        as: sourceQuestion
+
+  - name: QuestionOption
+    description: A selectable option for choice/dropdown questions
+    source_stories: [S1.3, S2.3, S2.4, S2.7]
+    fields:
+      - name: id
+        type: uuid
+        primary: true
+      - name: text
+        type: string
+        required: true
+      - name: order
+        type: integer
+        required: true
+      - name: createdAt
+        type: datetime
+        required: true
+    relationships:
+      - type: belongs_to
+        target: Question
+        field: questionId
+
+  - name: LogicRule
+    description: A skip/show/hide rule based on a question answer
+    source_stories: [S4.1, S4.2, S4.3]
+    fields:
+      - name: id
+        type: uuid
+        primary: true
+      - name: type
+        type: enum
+        values: [skip_to, show_if, hide_if]
+        required: true
+      - name: conditionValue
+        type: string
+        required: true
+      - name: createdAt
+        type: datetime
+        required: true
+    relationships:
+      - type: belongs_to
+        target: Survey
+        field: surveyId
+      - type: belongs_to
+        target: Question
+        field: sourceQuestionId
+      - type: belongs_to
+        target: Question
+        field: targetQuestionId
+
+  - name: Response
+    description: A complete or partial survey submission from a respondent
+    source_stories: [S5.1, S5.2, S5.3, S5.4]
+    fields:
+      - name: id
+        type: uuid
+        primary: true
+      - name: status
+        type: enum
+        values: [partial, complete]
+        default: partial
+      - name: respondentEmail
+        type: string
+        nullable: true
+      - name: browserFingerprint
+        type: string
+        nullable: true
+      - name: startedAt
+        type: datetime
+        required: true
+      - name: completedAt
+        type: datetime
+        nullable: true
+      - name: lastQuestionIndex
+        type: integer
+        default: 0
+      - name: completionTimeSeconds
+        type: integer
+        nullable: true
+      - name: createdAt
+        type: datetime
+        required: true
+      - name: updatedAt
+        type: datetime
+        required: true
+    relationships:
+      - type: belongs_to
+        target: Survey
+        field: surveyId
+      - type: has_many
+        target: Answer
+
+  - name: Answer
+    description: A single answer to a question within a response
+    source_stories: [S5.1, S5.2, S6.2]
+    fields:
+      - name: id
+        type: uuid
+        primary: true
+      - name: value
+        type: string
+        nullable: true
+      - name: selectedOptions
+        type: json
+        nullable: true
+      - name: numericValue
+        type: float
+        nullable: true
+      - name: dateValue
+        type: datetime
+        nullable: true
+      - name: createdAt
+        type: datetime
+        required: true
+    relationships:
+      - type: belongs_to
+        target: Response
+        field: responseId
+      - type: belongs_to
+        target: Question
+        field: questionId
+
+  - name: SurveyTemplate
+    description: A pre-built survey template for quick creation
+    source_stories: [S10.1, S10.2]
+    fields:
+      - name: id
+        type: string
+        primary: true
+      - name: name
+        type: string
+        required: true
+      - name: description
+        type: string
+        required: true
+      - name: category
+        type: enum
+        values: [nps, csat, event_feedback, product_feedback, employee_pulse]
+        required: true
+      - name: questionsJson
+        type: json
+        required: true
+      - name: previewImageUrl
+        type: string
+        nullable: true
+      - name: createdAt
+        type: datetime
+        required: true
+    relationships: []  # Standalone lookup table — no foreign keys
+
+# Lifecycle states extracted from scenarios
+lifecycle_states:
+  Survey:
+    states: [draft, live, closed]
+    transitions:
+      - from: draft
+        to: live
+        trigger: publish (S1.8)
+      - from: live
+        to: closed
+        trigger: manual close (S9.1), response limit reached (S9.2), close date reached (S9.3)
+      - from: closed
+        to: live
+        trigger: reopen (S9.1)
+  Response:
+    states: [partial, complete]
+    transitions:
+      - from: partial
+        to: complete
+        trigger: submit all answers (S5.1)
+
+# Enums summary
+enums:
+  AuthProvider: [email, google, github]
+  SurveyStatus: [draft, live, closed]
+  SurveyTheme: [default, minimal, bold, dark, pastel]
+  QuestionType: [short_text, long_text, single_choice, multiple_choice, rating, yes_no, dropdown, date, welcome_screen, thank_you_screen]
+  ValidationRule: [none, email, url, number]
+  RatingStyle: [stars, numeric, emoji]
+  LogicRuleType: [skip_to, show_if, hide_if]
+  ResponseStatus: [partial, complete]
+  TemplateCategory: [nps, csat, event_feedback, product_feedback, employee_pulse]

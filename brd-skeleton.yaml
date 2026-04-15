@@ -1,0 +1,561 @@
+# BRD Skeleton — Interactive Surveys
+# Generated deterministically from: direction.md, epics.yaml, stories/*.yaml, entities.yaml
+# Step 4b: Every field is a direct copy, string transformation, or arithmetic. No AI judgment.
+
+header:
+  domain: Interactive Surveys
+  date: "2026-04-15"
+  author: Alan Kwon
+  version: "0.1.0"
+  status: skeleton
+  deployment: railway.com
+
+features:
+  - id: F1
+    name: Survey Builder
+    description: Drag-and-drop survey builder with inline editing, reordering, duplication, preview, and publish
+    epicRef: E1
+    jiraKey: ISURV-1
+
+  - id: F2
+    name: Question Types
+    description: Ten question types including short text, long text, single/multiple choice, rating, yes/no, dropdown, date picker, welcome screen, thank-you screen
+    epicRef: E2
+    jiraKey: ISURV-2
+
+  - id: F3
+    name: OQAAT Respondent Experience
+    description: One-question-at-a-time respondent flow with keyboard navigation, mobile-first layout, progress indicator, and smooth transitions (200-300ms)
+    epicRef: E3
+    jiraKey: ISURV-3
+
+  - id: F4
+    name: Conditional Logic
+    description: Skip logic, conditional show/hide, logic preview with validation for broken and circular rules
+    epicRef: E4
+    jiraKey: ISURV-4
+
+  - id: F5
+    name: Response Collection
+    description: Complete and partial response capture, anonymous/identified modes, duplicate prevention
+    epicRef: E5
+    jiraKey: ISURV-5
+
+  - id: F6
+    name: Analytics Dashboard
+    description: Response summary, per-question breakdown with charts, completion funnel, CSV/JSON export
+    epicRef: E6
+    jiraKey: ISURV-6
+
+  - id: F7
+    name: Sharing and Distribution
+    description: Shareable links with custom slugs, embeddable iframe/JS widget, QR code generation, Open Graph meta tags
+    epicRef: E7
+    jiraKey: ISURV-7
+
+  - id: F8
+    name: Authentication and Creator Dashboard
+    description: Magic link and OAuth sign-up/login, creator dashboard with survey list/grid, logout with session management
+    epicRef: E8
+    jiraKey: ISURV-8
+
+  - id: F9
+    name: Survey Settings and Themes
+    description: Open/close toggle, response limits, scheduled open/close dates, 5 visual themes, custom thank-you and redirect
+    epicRef: E9
+    jiraKey: ISURV-9
+
+  - id: F10
+    name: Templates and Onboarding
+    description: Pre-built survey templates (NPS, CSAT, Event, Product, Employee), template customization, first-run onboarding flow
+    epicRef: E10
+    jiraKey: ISURV-10
+
+intents:
+  # E1: Survey Builder
+  - id: I1.1
+    title: Create new survey
+    description: As a survey creator, I want to create a new blank survey with a title, so that I have a starting point for building my survey
+    featureRef: F1
+    storyRef: S1.1
+    jiraKey: ISURV-11
+    priority: high
+
+  - id: I1.2
+    title: Add questions to survey
+    description: As a survey creator, I want to add questions from a type picker (10 types), so that I can build the content of my survey
+    featureRef: F1
+    storyRef: S1.2
+    jiraKey: ISURV-12
+    priority: high
+
+  - id: I1.3
+    title: Edit question inline
+    description: As a survey creator, I want to click a question and edit its text, options, and settings inline, so that I can refine questions without leaving the builder
+    featureRef: F1
+    storyRef: S1.3
+    jiraKey: ISURV-13
+    priority: high
+
+  - id: I1.4
+    title: Reorder questions via drag-and-drop
+    description: As a survey creator, I want to drag questions to reorder them, so that I can control the flow of my survey
+    featureRef: F1
+    storyRef: S1.4
+    jiraKey: ISURV-14
+    priority: medium
+
+  - id: I1.5
+    title: Delete question
+    description: As a survey creator, I want to remove a question from my survey, so that I can clean up unwanted questions
+    featureRef: F1
+    storyRef: S1.5
+    jiraKey: ISURV-15
+    priority: medium
+
+  - id: I1.6
+    title: Duplicate question
+    description: As a survey creator, I want to duplicate an existing question, so that I can quickly create similar questions without retyping
+    featureRef: F1
+    storyRef: S1.6
+    jiraKey: ISURV-16
+    priority: low
+
+  - id: I1.7
+    title: Live preview
+    description: As a survey creator, I want to see a real-time preview of how respondents will experience my survey, so that I can verify the look and feel before publishing
+    featureRef: F1
+    storyRef: S1.7
+    jiraKey: ISURV-17
+    priority: high
+
+  - id: I1.8
+    title: Publish survey
+    description: As a survey creator, I want to publish my survey to make it available via a shareable link, so that respondents can start taking it
+    featureRef: F1
+    storyRef: S1.8
+    jiraKey: ISURV-18
+    priority: high
+
+  # E2: Question Types
+  - id: I2.1
+    title: Short text question
+    featureRef: F2
+    storyRef: S2.1
+    jiraKey: ISURV-19
+    priority: high
+
+  - id: I2.2
+    title: Long text question
+    featureRef: F2
+    storyRef: S2.2
+    jiraKey: ISURV-20
+    priority: high
+
+  - id: I2.3
+    title: Single choice question
+    featureRef: F2
+    storyRef: S2.3
+    jiraKey: ISURV-21
+    priority: high
+
+  - id: I2.4
+    title: Multiple choice question
+    featureRef: F2
+    storyRef: S2.4
+    jiraKey: ISURV-22
+    priority: high
+
+  - id: I2.5
+    title: Rating/scale question
+    featureRef: F2
+    storyRef: S2.5
+    jiraKey: ISURV-23
+    priority: medium
+
+  - id: I2.6
+    title: Yes/No question
+    featureRef: F2
+    storyRef: S2.6
+    jiraKey: ISURV-24
+    priority: medium
+
+  - id: I2.7
+    title: Dropdown question
+    featureRef: F2
+    storyRef: S2.7
+    jiraKey: ISURV-25
+    priority: medium
+
+  - id: I2.8
+    title: Date picker question
+    featureRef: F2
+    storyRef: S2.8
+    jiraKey: ISURV-26
+    priority: low
+
+  - id: I2.9
+    title: Welcome screen
+    featureRef: F2
+    storyRef: S2.9
+    jiraKey: ISURV-27
+    priority: high
+
+  - id: I2.10
+    title: Thank-you screen
+    featureRef: F2
+    storyRef: S2.10
+    jiraKey: ISURV-28
+    priority: high
+
+  # E3: OQAAT Respondent Experience
+  - id: I3.1
+    title: One-question-at-a-time navigation
+    featureRef: F3
+    storyRef: S3.1
+    jiraKey: ISURV-29
+    priority: high
+
+  - id: I3.2
+    title: Keyboard navigation
+    featureRef: F3
+    storyRef: S3.2
+    jiraKey: ISURV-30
+    priority: high
+
+  - id: I3.3
+    title: Mobile-first responsive layout
+    featureRef: F3
+    storyRef: S3.3
+    jiraKey: ISURV-31
+    priority: high
+
+  - id: I3.4
+    title: Progress indicator
+    featureRef: F3
+    storyRef: S3.4
+    jiraKey: ISURV-32
+    priority: medium
+
+  - id: I3.5
+    title: Transition animations
+    featureRef: F3
+    storyRef: S3.5
+    jiraKey: ISURV-33
+    priority: medium
+
+  # E4: Conditional Logic
+  - id: I4.1
+    title: Add skip logic rule
+    featureRef: F4
+    storyRef: S4.1
+    jiraKey: ISURV-34
+    priority: medium
+
+  - id: I4.2
+    title: Conditional show/hide question
+    featureRef: F4
+    storyRef: S4.2
+    jiraKey: ISURV-35
+    priority: medium
+
+  - id: I4.3
+    title: Logic preview and validation
+    featureRef: F4
+    storyRef: S4.3
+    jiraKey: ISURV-36
+    priority: medium
+
+  # E5: Response Collection
+  - id: I5.1
+    title: Submit complete response
+    featureRef: F5
+    storyRef: S5.1
+    jiraKey: ISURV-37
+    priority: high
+
+  - id: I5.2
+    title: Partial response capture
+    featureRef: F5
+    storyRef: S5.2
+    jiraKey: ISURV-38
+    priority: medium
+
+  - id: I5.3
+    title: Anonymous and identified responses
+    featureRef: F5
+    storyRef: S5.3
+    jiraKey: ISURV-39
+    priority: medium
+
+  - id: I5.4
+    title: Duplicate prevention
+    featureRef: F5
+    storyRef: S5.4
+    jiraKey: ISURV-40
+    priority: low
+
+  # E6: Analytics Dashboard
+  - id: I6.1
+    title: Response summary overview
+    featureRef: F6
+    storyRef: S6.1
+    jiraKey: ISURV-41
+    priority: high
+
+  - id: I6.2
+    title: Per-question breakdown
+    featureRef: F6
+    storyRef: S6.2
+    jiraKey: ISURV-42
+    priority: high
+
+  - id: I6.3
+    title: Completion funnel
+    featureRef: F6
+    storyRef: S6.3
+    jiraKey: ISURV-43
+    priority: medium
+
+  - id: I6.4
+    title: Export responses
+    featureRef: F6
+    storyRef: S6.4
+    jiraKey: ISURV-44
+    priority: medium
+
+  # E7: Sharing and Distribution
+  - id: I7.1
+    title: Shareable survey link
+    featureRef: F7
+    storyRef: S7.1
+    jiraKey: ISURV-45
+    priority: high
+
+  - id: I7.2
+    title: Embeddable widget
+    featureRef: F7
+    storyRef: S7.2
+    jiraKey: ISURV-46
+    priority: low
+
+  - id: I7.3
+    title: QR code generation
+    featureRef: F7
+    storyRef: S7.3
+    jiraKey: ISURV-47
+    priority: low
+
+  - id: I7.4
+    title: Open Graph meta tags
+    featureRef: F7
+    storyRef: S7.4
+    jiraKey: ISURV-48
+    priority: low
+
+  # E8: Authentication and Creator Dashboard
+  - id: I8.1
+    title: Creator sign-up
+    featureRef: F8
+    storyRef: S8.1
+    jiraKey: ISURV-49
+    priority: high
+
+  - id: I8.2
+    title: Creator login
+    featureRef: F8
+    storyRef: S8.2
+    jiraKey: ISURV-50
+    priority: high
+
+  - id: I8.3
+    title: Creator dashboard
+    featureRef: F8
+    storyRef: S8.3
+    jiraKey: ISURV-51
+    priority: high
+
+  - id: I8.4
+    title: Logout
+    featureRef: F8
+    storyRef: S8.4
+    jiraKey: ISURV-52
+    priority: medium
+
+  # E9: Survey Settings and Themes
+  - id: I9.1
+    title: Open/close survey
+    featureRef: F9
+    storyRef: S9.1
+    jiraKey: ISURV-53
+    priority: medium
+
+  - id: I9.2
+    title: Response limit
+    featureRef: F9
+    storyRef: S9.2
+    jiraKey: ISURV-54
+    priority: low
+
+  - id: I9.3
+    title: Schedule open/close dates
+    featureRef: F9
+    storyRef: S9.3
+    jiraKey: ISURV-55
+    priority: low
+
+  - id: I9.4
+    title: Visual themes
+    featureRef: F9
+    storyRef: S9.4
+    jiraKey: ISURV-56
+    priority: medium
+
+  - id: I9.5
+    title: Custom thank-you and redirect
+    featureRef: F9
+    storyRef: S9.5
+    jiraKey: ISURV-57
+    priority: low
+
+  # E10: Templates and Onboarding
+  - id: I10.1
+    title: Browse survey templates
+    featureRef: F10
+    storyRef: S10.1
+    jiraKey: ISURV-58
+    priority: medium
+
+  - id: I10.2
+    title: Use a template
+    featureRef: F10
+    storyRef: S10.2
+    jiraKey: ISURV-59
+    priority: medium
+
+  - id: I10.3
+    title: First-run onboarding
+    featureRef: F10
+    storyRef: S10.3
+    jiraKey: ISURV-60
+    priority: low
+
+scenarios:
+  # Copied from stories/*.yaml — one entry per Given/When/Then
+  # 150 total scenarios across 50 stories
+  # Format: id, intentRef, given, when, then
+  # Sections NOT filled at skeleton stage: coverageType, expectedResult
+
+  # E1 scenarios (24)
+  - { id: SC1.1.1, intentRef: I1.1, given: "I am logged in", when: "I click Create Survey and enter a title", then: "a new survey is created and I see the empty builder" }
+  - { id: SC1.1.2, intentRef: I1.1, given: "I am logged in", when: "I try to create a survey without a title", then: "I see a validation error Title is required" }
+  - { id: SC1.1.3, intentRef: I1.1, given: "I am not logged in", when: "I try to access the create survey page", then: "I am redirected to the login page" }
+  - { id: SC1.2.1, intentRef: I1.2, given: "I have an open survey in the builder", when: "I click Add Question and select Short Text", then: "a short text question is appended to the survey" }
+  - { id: SC1.2.2, intentRef: I1.2, given: "I have an open survey", when: "I add a question of each of the 10 types", then: "all 10 render correctly in the builder" }
+  - { id: SC1.2.3, intentRef: I1.2, given: "I have an open survey with 50 questions", when: "I add another question", then: "I see a warning about lower completion rates" }
+  - { id: SC1.3.1, intentRef: I1.3, given: "a survey with questions", when: "I click on a question text", then: "the text becomes editable and I can type changes" }
+  - { id: SC1.3.2, intentRef: I1.3, given: "I am editing a choice question", when: "I add/remove/reorder options", then: "the options update in real-time" }
+  - { id: SC1.3.3, intentRef: I1.3, given: "I am editing a question", when: "I click outside or press Escape", then: "the edit is saved automatically" }
+  - { id: SC1.4.1, intentRef: I1.4, given: "a survey with 3+ questions", when: "I drag question 3 above question 1", then: "the order updates to 3, 1, 2" }
+  - { id: SC1.4.2, intentRef: I1.4, given: "I am dragging a question", when: "I drop it in the same position", then: "nothing changes" }
+  - { id: SC1.4.3, intentRef: I1.4, given: "I am on a mobile device", when: "I use the move up/down buttons", then: "the question reorders (touch-friendly fallback)" }
+  - { id: SC1.5.1, intentRef: I1.5, given: "a survey with questions", when: "I click the delete button on a question and confirm", then: "the question is removed" }
+  - { id: SC1.5.2, intentRef: I1.5, given: "a survey with one question", when: "I delete it", then: "the survey shows an empty state" }
+  - { id: SC1.5.3, intentRef: I1.5, given: "I click delete", when: "the confirmation dialog appears and I cancel", then: "the question is not removed" }
+  - { id: SC1.6.1, intentRef: I1.6, given: "a survey with a configured question", when: "I click Duplicate", then: "a copy appears below with the same type, text, and options" }
+  - { id: SC1.6.2, intentRef: I1.6, given: "I duplicate a question with conditional logic", when: "the copy is created", then: "the logic rules are not copied" }
+  - { id: SC1.6.3, intentRef: I1.6, given: "I duplicate a question", when: "the copy appears", then: "its title is suffixed with (copy)" }
+  - { id: SC1.7.1, intentRef: I1.7, given: "I am in the builder with questions", when: "I click Preview", then: "I see the OQAAT respondent view with my questions" }
+  - { id: SC1.7.2, intentRef: I1.7, given: "I am previewing", when: "I make changes in the builder", then: "the preview updates in real-time" }
+  - { id: SC1.7.3, intentRef: I1.7, given: "I am previewing on desktop", when: "I toggle Mobile preview", then: "the preview shows a mobile viewport width" }
+  - { id: SC1.8.1, intentRef: I1.8, given: "a survey with at least one question", when: "I click Publish", then: "the survey becomes live and I see the shareable link" }
+  - { id: SC1.8.2, intentRef: I1.8, given: "a survey with no questions", when: "I try to publish", then: "I see an error" }
+  - { id: SC1.8.3, intentRef: I1.8, given: "a published survey", when: "I make edits", then: "I see a Republish button" }
+
+  # Remaining 126 scenarios follow the same pattern — copied from E2-E10 stories
+  # (Abbreviated here to keep BRD skeleton manageable — full expansion during sprints)
+
+glossary:
+  # Term IDs extracted from story text + entities from Step 4a
+  # Definitions NOT filled at skeleton stage
+  - id: G1
+    term: Survey
+    entityRef: Survey
+  - id: G2
+    term: Question
+    entityRef: Question
+  - id: G3
+    term: QuestionOption
+    entityRef: QuestionOption
+  - id: G4
+    term: Response
+    entityRef: Response
+  - id: G5
+    term: Answer
+    entityRef: Answer
+  - id: G6
+    term: LogicRule
+    entityRef: LogicRule
+  - id: G7
+    term: User
+    entityRef: User
+  - id: G8
+    term: SurveyTemplate
+    entityRef: SurveyTemplate
+  - id: G9
+    term: OQAAT
+    definition: "One Question At A Time — interaction pattern where respondents see a single question per screen"
+  - id: G10
+    term: Magic Link
+    definition: "Passwordless authentication via a one-time URL sent to the user's email"
+  - id: G11
+    term: Skip Logic
+    definition: "Conditional rule that skips the respondent to a different question based on their answer"
+  - id: G12
+    term: Completion Funnel
+    definition: "Analytics visualization showing respondent drop-off at each question"
+
+entities:
+  # Copied from entities.yaml — 8 entities, 78 fields, 17 relationships
+  # Full entity definitions with fields, types, and relationships
+  source: entities.yaml
+
+# ─── Sections NOT filled at skeleton stage ─────────────────────
+# These sections will be filled incrementally during sprints:
+
+unfilled_sections:
+  - section: scenario.coverageType
+    reason: "requires judgment"
+    filled_during: sprints
+
+  - section: scenario.expectedResult
+    reason: "requires judgment"
+    filled_during: sprints
+
+  - section: glossary.precisionTypes
+    reason: "requires domain modeling"
+    filled_during: sprints
+
+  - section: glossary.definitions
+    reason: "requires domain modeling (8 entity terms)"
+    filled_during: sprints
+
+  - section: errorCodes
+    reason: "requires implementation"
+    filled_during: sprints
+
+  - section: domainEvents
+    reason: "requires implementation"
+    filled_during: sprints
+
+  - section: pageBriefs
+    reason: "requires UI design"
+    filled_during: sprints
+
+  - section: componentBriefs
+    reason: "requires UI design"
+    filled_during: sprints
+
+  - section: businessContext
+    reason: "requires domain understanding"
+    filled_during: sprints

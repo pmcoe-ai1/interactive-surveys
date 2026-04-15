@@ -1,0 +1,104 @@
+# Sprint Plan — Interactive Surveys
+# Generated from: dependencies.yaml + story-points.yaml + velocity.yaml
+# Method: Topological sort (Kahn's algorithm) → bin-pack at 30 pts/sprint
+# Constraint: dependent stories in same or later sprint, never earlier
+# Constraint: each sprint must deliver a demo-able outcome
+
+sprints:
+  - number: 1
+    goal: "Users can sign up, log in, create a survey, and add questions"
+    total_points: 28
+    demo: "Sign up with email, see empty dashboard, create a survey, add text/choice/yes-no questions, see them in the builder"
+    stories:
+      - { id: S8.1, points: 5, title: "Creator sign-up" }
+      - { id: S8.2, points: 3, title: "Creator login" }
+      - { id: S8.3, points: 3, title: "Creator dashboard" }
+      - { id: S8.4, points: 1, title: "Logout" }
+      - { id: S1.1, points: 3, title: "Create new survey" }
+      - { id: S1.2, points: 5, title: "Add questions to survey" }
+      - { id: S2.1, points: 2, title: "Short text question" }
+      - { id: S2.3, points: 3, title: "Single choice question" }
+      - { id: S2.6, points: 1, title: "Yes/No question" }
+      - { id: S2.9, points: 2, title: "Welcome screen" }
+
+  - number: 2
+    goal: "Survey builder is fully functional with all question types and respondents can take surveys"
+    total_points: 30
+    demo: "Edit questions inline, drag to reorder, delete/duplicate, preview in OQAAT mode, publish survey, take it on mobile with keyboard nav"
+    stories:
+      - { id: S1.3, points: 3, title: "Edit question inline" }
+      - { id: S1.5, points: 2, title: "Delete question" }
+      - { id: S1.6, points: 2, title: "Duplicate question" }
+      - { id: S2.2, points: 2, title: "Long text question" }
+      - { id: S2.4, points: 3, title: "Multiple choice question" }
+      - { id: S2.5, points: 3, title: "Rating/scale question" }
+      - { id: S2.7, points: 3, title: "Dropdown question" }
+      - { id: S3.1, points: 5, title: "OQAAT navigation" }
+      - { id: S3.2, points: 3, title: "Keyboard navigation" }
+      - { id: S3.5, points: 2, title: "Transition animations" }
+      - { id: S1.8, points: 3, title: "Publish survey" }  # Depends on S1.2 (Sprint 1)
+
+  - number: 3
+    goal: "Responses are collected, partial saves work, and creators see analytics"
+    total_points: 30
+    demo: "Submit a survey, resume a partially completed survey, view response summary with charts, see completion funnel, export CSV"
+    stories:
+      - { id: S1.4, points: 5, title: "Reorder via drag-and-drop" }
+      - { id: S2.8, points: 3, title: "Date picker question" }
+      - { id: S3.3, points: 3, title: "Mobile-first responsive" }
+      - { id: S3.4, points: 2, title: "Progress indicator" }
+      - { id: S5.1, points: 5, title: "Submit complete response" }
+      - { id: S2.10, points: 2, title: "Thank-you screen" }  # Depends on S5.1
+      - { id: S5.2, points: 5, title: "Partial response capture" }
+      - { id: S5.3, points: 2, title: "Anonymous/identified responses" }
+      - { id: S6.1, points: 5, title: "Response summary overview" }  # Depends on S5.1 + S8.3
+
+  - number: 4
+    goal: "Conditional logic, advanced analytics, sharing, and settings"
+    total_points: 30
+    demo: "Add skip logic rules, preview branching flow, view per-question charts, share via link/QR/embed, open/close survey, apply themes"
+    stories:
+      - { id: S1.7, points: 5, title: "Live preview" }  # Depends on S1.2 + S3.1
+      - { id: S4.1, points: 5, title: "Add skip logic rule" }
+      - { id: S4.2, points: 3, title: "Conditional show/hide" }
+      - { id: S5.4, points: 2, title: "Duplicate prevention" }
+      - { id: S6.2, points: 5, title: "Per-question breakdown" }
+      - { id: S6.3, points: 3, title: "Completion funnel" }
+      - { id: S7.1, points: 2, title: "Shareable survey link" }
+      - { id: S9.1, points: 2, title: "Open/close survey" }
+      - { id: S9.4, points: 3, title: "Visual themes" }
+
+  - number: 5
+    goal: "Polish: export, embed, QR, templates, onboarding, scheduled dates"
+    total_points: 30
+    demo: "Export CSV/JSON, embed survey on external page, scan QR code, create survey from template, complete first-run onboarding"
+    stories:
+      - { id: S4.3, points: 3, title: "Logic preview and validation" }
+      - { id: S6.4, points: 3, title: "Export responses" }
+      - { id: S7.2, points: 3, title: "Embeddable widget" }
+      - { id: S7.3, points: 2, title: "QR code generation" }
+      - { id: S7.4, points: 1, title: "Open Graph meta tags" }
+      - { id: S9.2, points: 2, title: "Response limit" }
+      - { id: S9.3, points: 3, title: "Schedule open/close dates" }
+      - { id: S9.5, points: 2, title: "Custom thank-you and redirect" }
+      - { id: S10.1, points: 3, title: "Browse survey templates" }
+      - { id: S10.2, points: 2, title: "Use a template" }
+      - { id: S10.3, points: 3, title: "First-run onboarding" }
+
+# Dependency verification:
+# - S8.1 has no deps → Sprint 1 ✓
+# - S1.1 depends on S8.3 → both Sprint 1 ✓
+# - S1.2 depends on S1.1 → both Sprint 1 ✓
+# - S3.1 depends on S2.1, S2.3 → S2.1/S2.3 Sprint 1, S3.1 Sprint 2 ✓
+# - S5.1 depends on S3.1 → S3.1 Sprint 2, S5.1 Sprint 3 ✓
+# - S6.1 depends on S5.1 + S8.3 → both earlier ✓
+# - S7.1 depends on S1.8 → S1.8 Sprint 2, S7.1 Sprint 4 ✓
+# - S4.1 depends on S1.2, S2.3 → both Sprint 1 ✓
+# - S10.1 depends on S1.1, S8.3 → both Sprint 1 ✓
+# No backward dependencies.
+
+summary:
+  total_points: 148
+  sprint_count: 5
+  points_per_sprint: [28, 30, 30, 30, 27]
+  timeline: "10 weeks"

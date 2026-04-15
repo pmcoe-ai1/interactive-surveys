@@ -1,0 +1,213 @@
+# E2: Question Types — User Stories
+# Epic: ISURV-2
+
+stories:
+  - id: S2.1
+    jira_key: ISURV-19
+    epic: E2
+    title: Short text question
+    as_a: survey creator
+    i_want: add a short text question with optional validation (email, URL, number)
+    so_that: I can collect brief text answers from respondents
+    scenarios:
+      - id: SC2.1.1
+        given: I add a short text question
+        when: a respondent types an answer and presses Enter
+        then: the answer is saved and the next question appears
+      - id: SC2.1.2
+        given: I set validation to email
+        when: a respondent enters an invalid email
+        then: they see a validation error
+      - id: SC2.1.3
+        given: I set a placeholder text
+        when: the respondent sees the question
+        then: the placeholder appears in the input field
+
+  - id: S2.2
+    jira_key: ISURV-20
+    epic: E2
+    title: Long text question
+    as_a: survey creator
+    i_want: add a long text question with optional character limit
+    so_that: I can collect detailed open-ended feedback
+    scenarios:
+      - id: SC2.2.1
+        given: I add a long text question
+        when: a respondent types multiple lines
+        then: the textarea expands to fit the content
+      - id: SC2.2.2
+        given: I set a 500 character limit
+        when: the respondent types 501 characters
+        then: they see a counter showing they exceeded the limit
+      - id: SC2.2.3
+        given: a long text question with no limit
+        when: the respondent submits
+        then: any length answer is accepted
+
+  - id: S2.3
+    jira_key: ISURV-21
+    epic: E2
+    title: Single choice question
+    as_a: survey creator
+    i_want: add a single choice question with card-style or radio options
+    so_that: respondents can pick exactly one answer
+    scenarios:
+      - id: SC2.3.1
+        given: a single choice question with 4 options
+        when: a respondent clicks option B
+        then: option B is selected and others are deselected
+      - id: SC2.3.2
+        given: a single choice question
+        when: a respondent presses number key 2
+        then: the second option is selected (keyboard shortcut)
+      - id: SC2.3.3
+        given: a single choice with an "Other" option enabled
+        when: the respondent selects "Other"
+        then: a text input appears for their custom answer
+
+  - id: S2.4
+    jira_key: ISURV-22
+    epic: E2
+    title: Multiple choice question
+    as_a: survey creator
+    i_want: add a multiple choice question with min/max selection constraints
+    so_that: respondents can select one or more answers
+    scenarios:
+      - id: SC2.4.1
+        given: a multiple choice question
+        when: a respondent selects 3 options
+        then: all 3 are checked
+      - id: SC2.4.2
+        given: I set max selections to 2
+        when: a respondent tries to select a 3rd option
+        then: they see a message "Select at most 2"
+      - id: SC2.4.3
+        given: I set min selections to 1
+        when: a respondent tries to advance without selecting any
+        then: they see a message "Select at least 1"
+
+  - id: S2.5
+    jira_key: ISURV-23
+    epic: E2
+    title: Rating/scale question
+    as_a: survey creator
+    i_want: add a rating question (stars, numeric scale, or emoji)
+    so_that: I can measure satisfaction or sentiment
+    scenarios:
+      - id: SC2.5.1
+        given: a 5-star rating question
+        when: a respondent clicks the 4th star
+        then: stars 1-4 are filled and the rating is saved as 4
+      - id: SC2.5.2
+        given: a 1-10 numeric scale
+        when: a respondent clicks 7
+        then: 7 is highlighted and saved
+      - id: SC2.5.3
+        given: a rating question
+        when: the respondent hovers over a star
+        then: a preview highlight shows what they would select
+
+  - id: S2.6
+    jira_key: ISURV-24
+    epic: E2
+    title: Yes/No question
+    as_a: survey creator
+    i_want: add a yes/no binary question
+    so_that: respondents can make simple binary decisions
+    scenarios:
+      - id: SC2.6.1
+        given: a yes/no question
+        when: a respondent clicks Yes
+        then: Yes is selected and highlighted
+      - id: SC2.6.2
+        given: a yes/no question
+        when: a respondent presses Y or N on keyboard
+        then: the corresponding option is selected
+      - id: SC2.6.3
+        given: a yes/no question
+        when: the respondent changes their mind and clicks No
+        then: Yes is deselected and No is selected
+
+  - id: S2.7
+    jira_key: ISURV-25
+    epic: E2
+    title: Dropdown question
+    as_a: survey creator
+    i_want: add a dropdown question with searchable options
+    so_that: I can present long option lists compactly
+    scenarios:
+      - id: SC2.7.1
+        given: a dropdown with 50 options
+        when: a respondent clicks the dropdown
+        then: all options are shown in a scrollable list
+      - id: SC2.7.2
+        given: a dropdown with 10+ options
+        when: the respondent types in the search field
+        then: options are filtered by the typed text
+      - id: SC2.7.3
+        given: a dropdown question
+        when: the respondent selects an option
+        then: the dropdown closes and shows the selected value
+
+  - id: S2.8
+    jira_key: ISURV-26
+    epic: E2
+    title: Date picker question
+    as_a: survey creator
+    i_want: add a date picker question
+    so_that: I can collect date inputs from respondents
+    scenarios:
+      - id: SC2.8.1
+        given: a date question
+        when: a respondent clicks the date field
+        then: a calendar picker appears
+      - id: SC2.8.2
+        given: a date question
+        when: a respondent selects March 15 2026
+        then: the date is saved and displayed as "Mar 15, 2026"
+      - id: SC2.8.3
+        given: a date question with min/max date constraints
+        when: a respondent selects a date outside the range
+        then: they see a validation error
+
+  - id: S2.9
+    jira_key: ISURV-27
+    epic: E2
+    title: Welcome screen
+    as_a: survey creator
+    i_want: add a welcome screen with title, description, and start button
+    so_that: I can introduce the survey to respondents
+    scenarios:
+      - id: SC2.9.1
+        given: a survey with a welcome screen
+        when: a respondent opens the survey link
+        then: they see the welcome title, description, and a Start button
+      - id: SC2.9.2
+        given: a welcome screen with a custom button label
+        when: the respondent sees it
+        then: the button shows the custom label instead of "Start"
+      - id: SC2.9.3
+        given: a welcome screen
+        when: the respondent clicks Start
+        then: the first question appears with a smooth transition
+
+  - id: S2.10
+    jira_key: ISURV-28
+    epic: E2
+    title: Thank-you screen
+    as_a: survey creator
+    i_want: add a thank-you screen with a message and optional redirect
+    so_that: respondents get a clear completion signal
+    scenarios:
+      - id: SC2.10.1
+        given: a survey with a thank-you screen
+        when: a respondent submits the last question
+        then: the thank-you screen appears with the configured message
+      - id: SC2.10.2
+        given: a thank-you screen with a redirect URL
+        when: the respondent sees it
+        then: they are redirected after 5 seconds (with a countdown)
+      - id: SC2.10.3
+        given: a thank-you screen with a CTA button
+        when: the respondent clicks it
+        then: they navigate to the configured URL

@@ -1,0 +1,237 @@
+# Story Points — Interactive Surveys
+# Fibonacci scale: 1, 2, 3, 5, 8
+# Sizing criteria: scenario count, entity complexity, UI complexity, dependencies
+
+stories:
+  # E1: Survey Builder
+  - id: S1.1
+    jira_key: ISURV-11
+    points: 3
+    rationale: Create survey API + empty builder page + auth guard — moderate backend + frontend
+  - id: S1.2
+    jira_key: ISURV-12
+    points: 5
+    rationale: Type picker UI + 10 question type rendering stubs + append logic — high UI complexity
+  - id: S1.3
+    jira_key: ISURV-13
+    points: 3
+    rationale: Inline edit with contenteditable/input + option CRUD + auto-save — moderate
+  - id: S1.4
+    jira_key: ISURV-14
+    points: 5
+    rationale: Drag-and-drop library integration + order persistence + mobile fallback
+  - id: S1.5
+    jira_key: ISURV-15
+    points: 2
+    rationale: Delete with confirmation dialog — straightforward CRUD
+  - id: S1.6
+    jira_key: ISURV-16
+    points: 2
+    rationale: Deep clone question + skip logic exclusion — moderate logic, simple UI
+  - id: S1.7
+    jira_key: ISURV-17
+    points: 5
+    rationale: Split-pane preview with OQAAT rendering + real-time sync + mobile toggle
+  - id: S1.8
+    jira_key: ISURV-18
+    points: 3
+    rationale: Status transition draft→live + generate slug + validation checks
+
+  # E2: Question Types
+  - id: S2.1
+    jira_key: ISURV-19
+    points: 2
+    rationale: Text input + validation rules (email, URL, number) — simple component
+  - id: S2.2
+    jira_key: ISURV-20
+    points: 2
+    rationale: Textarea with auto-expand + character counter — simple component
+  - id: S2.3
+    jira_key: ISURV-21
+    points: 3
+    rationale: Card-style options + keyboard number selection + "Other" text input
+  - id: S2.4
+    jira_key: ISURV-22
+    points: 3
+    rationale: Checkbox group + min/max selection enforcement — moderate validation
+  - id: S2.5
+    jira_key: ISURV-23
+    points: 3
+    rationale: Three render modes (stars, numeric, emoji) + hover preview
+  - id: S2.6
+    jira_key: ISURV-24
+    points: 1
+    rationale: Binary toggle with keyboard shortcuts Y/N — simplest question type
+  - id: S2.7
+    jira_key: ISURV-25
+    points: 3
+    rationale: Searchable dropdown with 50+ option support — combobox component
+  - id: S2.8
+    jira_key: ISURV-26
+    points: 3
+    rationale: Calendar picker + min/max date constraints — date library integration
+  - id: S2.9
+    jira_key: ISURV-27
+    points: 2
+    rationale: Static screen with title, description, custom button label — simple
+  - id: S2.10
+    jira_key: ISURV-28
+    points: 2
+    rationale: Static screen with message + countdown redirect — simple
+
+  # E3: OQAAT Respondent Experience
+  - id: S3.1
+    jira_key: ISURV-29
+    points: 5
+    rationale: Core OQAAT engine — question stack, transitions, progress bar, state machine
+  - id: S3.2
+    jira_key: ISURV-30
+    points: 3
+    rationale: Global keyboard listener + Enter/number/Shift+Tab mapping
+  - id: S3.3
+    jira_key: ISURV-31
+    points: 3
+    rationale: Mobile-first responsive CSS + 44px touch targets + viewport handling
+  - id: S3.4
+    jira_key: ISURV-32
+    points: 2
+    rationale: Progress bar component that adapts to conditional skip count
+  - id: S3.5
+    jira_key: ISURV-33
+    points: 2
+    rationale: CSS transitions (200-300ms) + prefers-reduced-motion check
+
+  # E4: Conditional Logic
+  - id: S4.1
+    jira_key: ISURV-34
+    points: 5
+    rationale: Rule builder UI + forward-only validation + persistence — complex logic
+  - id: S4.2
+    jira_key: ISURV-35
+    points: 3
+    rationale: Show/hide evaluation engine in respondent flow — extends S4.1
+  - id: S4.3
+    jira_key: ISURV-36
+    points: 3
+    rationale: Logic preview + broken rule detection + circular dependency check
+
+  # E5: Response Collection
+  - id: S5.1
+    jira_key: ISURV-37
+    points: 5
+    rationale: Response API + answer persistence + offline retry + thank-you transition
+  - id: S5.2
+    jira_key: ISURV-38
+    points: 5
+    rationale: Partial save on each answer + localStorage backup + resume flow
+  - id: S5.3
+    jira_key: ISURV-39
+    points: 2
+    rationale: Anonymous flag + optional email field toggle — configuration only
+  - id: S5.4
+    jira_key: ISURV-40
+    points: 2
+    rationale: Cookie-based fingerprint + duplicate check on submit — simple
+
+  # E6: Analytics Dashboard
+  - id: S6.1
+    jira_key: ISURV-41
+    points: 5
+    rationale: Dashboard page + aggregate queries + SSE real-time updates
+  - id: S6.2
+    jira_key: ISURV-42
+    points: 5
+    rationale: Per-question charts (bar, histogram, text list) — charting library
+  - id: S6.3
+    jira_key: ISURV-43
+    points: 3
+    rationale: Funnel visualization from partial response data + drop-off highlighting
+  - id: S6.4
+    jira_key: ISURV-44
+    points: 3
+    rationale: CSV/JSON export with date filtering — data serialization
+
+  # E7: Sharing and Distribution
+  - id: S7.1
+    jira_key: ISURV-45
+    points: 2
+    rationale: Share panel + copy to clipboard + custom slug — extends publish
+  - id: S7.2
+    jira_key: ISURV-46
+    points: 3
+    rationale: Iframe embed code + JS widget with overlay — cross-origin concerns
+  - id: S7.3
+    jira_key: ISURV-47
+    points: 2
+    rationale: QR code generation library + download as PNG
+  - id: S7.4
+    jira_key: ISURV-48
+    points: 1
+    rationale: OG meta tags in HTML head — server-side rendering of tags
+
+  # E8: Authentication and Creator Dashboard
+  - id: S8.1
+    jira_key: ISURV-49
+    points: 5
+    rationale: Auth system setup + magic link email + OAuth (Google) — foundational
+  - id: S8.2
+    jira_key: ISURV-50
+    points: 3
+    rationale: Login page + magic link verification + OAuth callback handling
+  - id: S8.3
+    jira_key: ISURV-51
+    points: 3
+    rationale: Dashboard page with survey list/grid + stats + empty state
+  - id: S8.4
+    jira_key: ISURV-52
+    points: 1
+    rationale: Session destroy + redirect — trivial
+
+  # E9: Survey Settings and Themes
+  - id: S9.1
+    jira_key: ISURV-53
+    points: 2
+    rationale: Status toggle open/closed + respondent-facing closed message
+  - id: S9.2
+    jira_key: ISURV-54
+    points: 2
+    rationale: Response limit field + auto-close trigger on submit
+  - id: S9.3
+    jira_key: ISURV-55
+    points: 3
+    rationale: Scheduled open/close with datetime pickers + cron/check logic
+  - id: S9.4
+    jira_key: ISURV-56
+    points: 3
+    rationale: 5 theme CSS files + theme picker UI + preview integration
+  - id: S9.5
+    jira_key: ISURV-57
+    points: 2
+    rationale: Custom thank-you message + redirect URL + countdown timer
+
+  # E10: Templates and Onboarding
+  - id: S10.1
+    jira_key: ISURV-58
+    points: 3
+    rationale: Template gallery page + template data model + hover preview
+  - id: S10.2
+    jira_key: ISURV-59
+    points: 2
+    rationale: Clone template into new survey + rename — extends create flow
+  - id: S10.3
+    jira_key: ISURV-60
+    points: 3
+    rationale: Onboarding card + tooltip tour + dismissal persistence
+
+# Summary
+summary:
+  total_points: 148
+  story_count: 50
+  average_per_story: 2.96
+  distribution:
+    1_point: 3   # S2.6, S7.4, S8.4
+    2_point: 14  # S1.5, S1.6, S2.1, S2.2, S2.9, S2.10, S3.4, S3.5, S5.3, S5.4, S7.1, S7.3, S9.1, S9.2, S9.5, S10.2
+    3_point: 18  # S1.1, S1.3, S1.8, S2.3, S2.4, S2.5, S2.7, S2.8, S3.2, S3.3, S4.2, S4.3, S6.3, S6.4, S7.2, S8.2, S8.3, S9.3, S9.4, S10.1, S10.3
+    5_point: 15  # S1.2, S1.4, S1.7, S3.1, S4.1, S5.1, S5.2, S6.1, S6.2, S8.1
+    8_point: 0
+  no_stories_over_8: true

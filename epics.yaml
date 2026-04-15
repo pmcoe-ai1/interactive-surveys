@@ -1,0 +1,96 @@
+# Interactive Surveys — Epics
+# Source: direction.md
+# Jira project: ISURV (https://pmcoe-ai1.atlassian.net/jira/software/projects/ISURV/board)
+
+epics:
+  - id: E1
+    name: Survey Builder
+    jira_key: ISURV-1
+    description: >-
+      Drag-and-drop survey creation UI with inline question editing, type picker,
+      reordering, and live preview.
+    demo: >-
+      Create a survey, drag questions, reorder, edit inline — visible on screen.
+
+  - id: E2
+    name: Question Types
+    jira_key: ISURV-2
+    description: >-
+      10 question type components: short text, long text, single choice, multiple
+      choice, rating/scale, yes/no, dropdown, date, welcome screen, thank-you screen.
+    demo: >-
+      Show all 10 question types rendering and accepting input.
+
+  - id: E3
+    name: OQAAT Respondent Experience
+    jira_key: ISURV-3
+    description: >-
+      One-question-at-a-time survey-taking interface with Framer Motion transitions,
+      keyboard navigation (Enter to advance, number keys to select), progress bar,
+      and mobile-first responsive design.
+    demo: >-
+      Take a survey with smooth transitions, keyboard nav, progress bar, mobile view.
+
+  - id: E4
+    name: Conditional Logic
+    jira_key: ISURV-4
+    description: >-
+      Branching/skip logic engine: if answer to Q-N matches condition, jump to Q-M.
+      Visual logic editor in the survey builder.
+    demo: >-
+      Take a survey where answers visibly change the path.
+
+  - id: E5
+    name: Response Collection
+    jira_key: ISURV-5
+    description: >-
+      Submission storage with timestamps, partial response capture, anonymous/identified
+      modes, duplicate prevention, response metadata.
+    demo: >-
+      Submit a survey, see it stored, show partial save resuming.
+
+  - id: E6
+    name: Analytics Dashboard
+    jira_key: ISURV-6
+    description: >-
+      Response summary with completion rates, per-question breakdowns, completion funnel,
+      real-time response feed (SSE), date/answer filtering, CSV/JSON export.
+    demo: >-
+      View response charts, completion funnel, real-time feed updating live.
+
+  - id: E7
+    name: Sharing and Distribution
+    jira_key: ISURV-7
+    description: >-
+      Unique shareable link per survey, custom slugs, embeddable widget (iframe + JS),
+      QR code generation, Open Graph meta tags for link previews.
+    demo: >-
+      Open a share link, embed in a page, scan a QR code — all load the survey.
+
+  - id: E8
+    name: Authentication and Creator Dashboard
+    jira_key: ISURV-8
+    description: >-
+      NextAuth.js integration for survey creators — email magic links, OAuth
+      (Google/GitHub), session management. Creator dashboard showing list of surveys
+      with response counts and status. No auth for respondents.
+    demo: >-
+      Sign up, log in, see your list of surveys with stats.
+
+  - id: E9
+    name: Survey Settings and Themes
+    jira_key: ISURV-9
+    description: >-
+      Open/close toggle, response limits, scheduling (open/close dates), custom
+      thank-you message, redirect URL, require-email toggle. 3-5 built-in visual themes.
+    demo: >-
+      Toggle open/close, set response limit, switch between visual themes.
+
+  - id: E10
+    name: Templates and Onboarding
+    jira_key: ISURV-10
+    description: >-
+      Pre-built survey templates for common use cases: NPS, CSAT, event feedback,
+      product feedback, employee pulse. First-run onboarding flow guiding new users.
+    demo: >-
+      Pick a template, see pre-populated survey, edit and publish in under 2 minutes.

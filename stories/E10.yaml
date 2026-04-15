@@ -1,0 +1,66 @@
+# E10: Templates and Onboarding — User Stories
+# Epic: ISURV-10
+
+stories:
+  - id: S10.1
+    jira_key: ISURV-58
+    epic: E10
+    title: Browse survey templates
+    as_a: new creator
+    i_want: browse pre-built survey templates
+    so_that: I can start quickly without building from scratch
+    scenarios:
+      - id: SC10.1.1
+        given: I am on the dashboard
+        when: I click "Create Survey"
+        then: I see a template gallery with NPS, CSAT, Event Feedback, Product Feedback, and Employee Pulse options
+      - id: SC10.1.2
+        given: I browse templates
+        when: I hover over a template card
+        then: I see a preview of the template questions
+      - id: SC10.1.3
+        given: I want a blank survey
+        when: I click "Start from scratch"
+        then: I get an empty survey builder
+
+  - id: S10.2
+    jira_key: ISURV-59
+    epic: E10
+    title: Use a template
+    as_a: creator
+    i_want: create a survey from a template
+    so_that: I get pre-populated questions I can customize
+    scenarios:
+      - id: SC10.2.1
+        given: I select the NPS template
+        when: the survey opens in the builder
+        then: I see pre-populated questions (rating, follow-up, demographics) that I can edit
+      - id: SC10.2.2
+        given: I create from a template
+        when: I edit a pre-populated question
+        then: my changes are saved without affecting the original template
+      - id: SC10.2.3
+        given: I create from a template
+        when: the survey opens
+        then: the title is set to the template name with a suffix like "NPS Survey - April 2026"
+
+  - id: S10.3
+    jira_key: ISURV-60
+    epic: E10
+    title: First-run onboarding
+    as_a: brand new user
+    i_want: a guided onboarding flow
+    so_that: I understand how to create my first survey
+    scenarios:
+      - id: SC10.3.1
+        given: I just signed up and have no surveys
+        when: I land on the dashboard
+        then: I see an onboarding card with 3 steps - Create, Customize, Share
+      - id: SC10.3.2
+        given: I click "Create my first survey" in the onboarding
+        when: the builder opens
+        then: I see tooltip hints pointing to key features (add question, preview, publish)
+      - id: SC10.3.3
+        given: I complete my first survey
+        when: I return to the dashboard
+        then: the onboarding card is dismissed and does not appear again

@@ -1,0 +1,66 @@
+# E4: Conditional Logic — User Stories
+# Epic: ISURV-4
+
+stories:
+  - id: S4.1
+    jira_key: ISURV-34
+    epic: E4
+    title: Add skip logic rule
+    as_a: survey creator
+    i_want: add a rule that skips to a specific question based on an answer
+    so_that: respondents only see relevant questions
+    scenarios:
+      - id: SC4.1.1
+        given: I am editing a single choice question
+        when: I add a rule "If answer is Yes, skip to Q5"
+        then: the rule is saved and shown in the builder
+      - id: SC4.1.2
+        given: I add a skip rule referencing a later question
+        when: I save
+        then: the rule is validated as forward-only
+      - id: SC4.1.3
+        given: I try to add a rule that skips backward
+        when: I save
+        then: I see an error "Skip rules must point to a later question"
+
+  - id: S4.2
+    jira_key: ISURV-35
+    epic: E4
+    title: Conditional show/hide question
+    as_a: survey creator
+    i_want: show or hide a question based on a previous answer
+    so_that: the survey adapts to the respondent
+    scenarios:
+      - id: SC4.2.1
+        given: I set Q4 to show only if Q2 answer is "Other"
+        when: a respondent answers Q2 with "Option A"
+        then: Q4 is skipped entirely
+      - id: SC4.2.2
+        given: the show condition is met
+        when: the respondent reaches that point
+        then: the conditional question appears normally
+      - id: SC4.2.3
+        given: a question has a show condition
+        when: I view it in the builder
+        then: I see a condition badge indicating it is conditional
+
+  - id: S4.3
+    jira_key: ISURV-36
+    epic: E4
+    title: Logic preview and validation
+    as_a: survey creator
+    i_want: preview how logic affects the survey flow
+    so_that: I can verify branching works correctly
+    scenarios:
+      - id: SC4.3.1
+        given: I have added skip logic rules
+        when: I click Preview
+        then: the preview follows the logic rules based on my test answers
+      - id: SC4.3.2
+        given: I have a rule referencing a deleted question
+        when: I open the builder
+        then: 'I see a warning "Broken rule: target question was deleted"'
+      - id: SC4.3.3
+        given: I have circular logic (Q3 skips to Q5, Q5 skips to Q3)
+        when: I save
+        then: 'I see an error "Circular logic detected"'

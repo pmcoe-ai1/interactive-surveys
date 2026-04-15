@@ -1,0 +1,171 @@
+# E1: Survey Builder — User Stories
+# Epic: ISURV-1
+
+stories:
+  - id: S1.1
+    jira_key: ISURV-11
+    epic: E1
+    title: Create new survey
+    as_a: survey creator
+    i_want: create a new blank survey with a title
+    so_that: I have a starting point for building my survey
+    scenarios:
+      - id: SC1.1.1
+        given: I am logged in
+        when: I click "Create Survey" and enter a title
+        then: a new survey is created and I see the empty builder
+      - id: SC1.1.2
+        given: I am logged in
+        when: I try to create a survey without a title
+        then: I see a validation error "Title is required"
+      - id: SC1.1.3
+        given: I am not logged in
+        when: I try to access the create survey page
+        then: I am redirected to the login page
+
+  - id: S1.2
+    jira_key: ISURV-12
+    epic: E1
+    title: Add questions to survey
+    as_a: survey creator
+    i_want: add questions from a type picker (10 types)
+    so_that: I can build the content of my survey
+    scenarios:
+      - id: SC1.2.1
+        given: I have an open survey in the builder
+        when: I click "Add Question" and select "Short Text"
+        then: a short text question is appended to the survey
+      - id: SC1.2.2
+        given: I have an open survey
+        when: I add a question of each of the 10 types
+        then: all 10 render correctly in the builder
+      - id: SC1.2.3
+        given: I have an open survey with 50 questions
+        when: I add another question
+        then: I see a warning "Surveys with more than 12 questions have lower completion rates"
+
+  - id: S1.3
+    jira_key: ISURV-13
+    epic: E1
+    title: Edit question inline
+    as_a: survey creator
+    i_want: click a question and edit its text, options, and settings inline
+    so_that: I can refine questions without leaving the builder
+    scenarios:
+      - id: SC1.3.1
+        given: a survey with questions
+        when: I click on a question's text
+        then: the text becomes editable and I can type changes
+      - id: SC1.3.2
+        given: I am editing a choice question
+        when: I add/remove/reorder options
+        then: the options update in real-time
+      - id: SC1.3.3
+        given: I am editing a question
+        when: I click outside or press Escape
+        then: the edit is saved automatically
+
+  - id: S1.4
+    jira_key: ISURV-14
+    epic: E1
+    title: Reorder questions via drag-and-drop
+    as_a: survey creator
+    i_want: drag questions to reorder them
+    so_that: I can control the flow of my survey
+    scenarios:
+      - id: SC1.4.1
+        given: a survey with 3+ questions
+        when: I drag question 3 above question 1
+        then: the order updates to 3, 1, 2
+      - id: SC1.4.2
+        given: I am dragging a question
+        when: I drop it in the same position
+        then: nothing changes
+      - id: SC1.4.3
+        given: I am on a mobile device
+        when: I use the move up/down buttons
+        then: the question reorders (touch-friendly fallback)
+
+  - id: S1.5
+    jira_key: ISURV-15
+    epic: E1
+    title: Delete question
+    as_a: survey creator
+    i_want: remove a question from my survey
+    so_that: I can clean up unwanted questions
+    scenarios:
+      - id: SC1.5.1
+        given: a survey with questions
+        when: I click the delete button on a question and confirm
+        then: the question is removed
+      - id: SC1.5.2
+        given: a survey with one question
+        when: I delete it
+        then: the survey shows an empty state with "Add your first question"
+      - id: SC1.5.3
+        given: I click delete
+        when: the confirmation dialog appears and I cancel
+        then: the question is not removed
+
+  - id: S1.6
+    jira_key: ISURV-16
+    epic: E1
+    title: Duplicate question
+    as_a: survey creator
+    i_want: duplicate an existing question
+    so_that: I can quickly create similar questions without retyping
+    scenarios:
+      - id: SC1.6.1
+        given: a survey with a configured question
+        when: I click "Duplicate"
+        then: a copy appears below with the same type, text, and options
+      - id: SC1.6.2
+        given: I duplicate a question with conditional logic
+        when: the copy is created
+        then: the logic rules are not copied (to avoid broken references)
+      - id: SC1.6.3
+        given: I duplicate a question
+        when: the copy appears
+        then: its title is suffixed with "(copy)"
+
+  - id: S1.7
+    jira_key: ISURV-17
+    epic: E1
+    title: Live preview
+    as_a: survey creator
+    i_want: see a real-time preview of how respondents will experience my survey
+    so_that: I can verify the look and feel before publishing
+    scenarios:
+      - id: SC1.7.1
+        given: I am in the builder with questions
+        when: I click "Preview"
+        then: I see the OQAAT respondent view with my questions
+      - id: SC1.7.2
+        given: I am previewing
+        when: I make changes in the builder
+        then: the preview updates in real-time
+      - id: SC1.7.3
+        given: I am previewing on desktop
+        when: I toggle "Mobile preview"
+        then: the preview shows a mobile viewport width
+
+  - id: S1.8
+    jira_key: ISURV-18
+    epic: E1
+    title: Publish survey
+    as_a: survey creator
+    i_want: publish my survey to make it available via a shareable link
+    so_that: respondents can start taking it
+    scenarios:
+      - id: SC1.8.1
+        given: a survey with at least one question
+        when: I click "Publish"
+        then: the survey becomes live and I see the shareable link
+      - id: SC1.8.2
+        given: a survey with no questions
+        when: I try to publish
+        then: I see an error "Add at least one question before publishing"
+      - id: SC1.8.3
+        given: a published survey
+        when: I make edits
+        then: I see a "Republish" button to push changes live

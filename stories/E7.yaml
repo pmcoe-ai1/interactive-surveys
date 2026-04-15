@@ -1,0 +1,87 @@
+# E7: Sharing and Distribution — User Stories
+# Epic: ISURV-7
+
+stories:
+  - id: S7.1
+    jira_key: ISURV-45
+    epic: E7
+    title: Shareable survey link
+    as_a: survey creator
+    i_want: a unique link for each survey
+    so_that: I can share it with respondents
+    scenarios:
+      - id: SC7.1.1
+        given: I publish a survey
+        when: I view the share panel
+        then: I see a unique URL like /s/abc123 and a Copy button
+      - id: SC7.1.2
+        given: I click Copy
+        when: the URL is copied
+        then: I see a confirmation toast "Link copied to clipboard"
+      - id: SC7.1.3
+        given: I set a custom slug like "customer-feedback"
+        when: I save
+        then: the survey URL becomes /s/customer-feedback
+
+  - id: S7.2
+    jira_key: ISURV-46
+    epic: E7
+    title: Embeddable widget
+    as_a: survey creator
+    i_want: embed my survey on external websites
+    so_that: respondents can take it without leaving the page
+    scenarios:
+      - id: SC7.2.1
+        given: I want to embed a survey
+        when: I open the share panel
+        then: I see an iframe embed code I can copy
+      - id: SC7.2.2
+        given: I paste the iframe code into an HTML page
+        when: I load the page
+        then: the survey renders inline at the correct size
+      - id: SC7.2.3
+        given: I want a JS widget embed
+        when: I copy the script tag
+        then: the survey loads as an overlay/popup on the host page
+
+  - id: S7.3
+    jira_key: ISURV-47
+    epic: E7
+    title: QR code generation
+    as_a: survey creator
+    i_want: a QR code for my survey
+    so_that: I can share it at physical events or in print
+    scenarios:
+      - id: SC7.3.1
+        given: I open the share panel
+        when: I click "Generate QR Code"
+        then: a QR code image appears that encodes the survey URL
+      - id: SC7.3.2
+        given: the QR code is generated
+        when: I click Download
+        then: a PNG file of the QR code is saved
+      - id: SC7.3.3
+        given: a respondent scans the QR code with their phone
+        when: the URL opens
+        then: the survey loads in their mobile browser
+
+  - id: S7.4
+    jira_key: ISURV-48
+    epic: E7
+    title: Open Graph meta tags
+    as_a: survey creator
+    i_want: my survey link to show a rich preview when shared on social media
+    so_that: more people click through
+    scenarios:
+      - id: SC7.4.1
+        given: a published survey
+        when: I share the link on Slack or Twitter
+        then: it shows a preview card with the survey title and description
+      - id: SC7.4.2
+        given: I set a custom survey description
+        when: the preview renders
+        then: it uses the custom description text
+      - id: SC7.4.3
+        given: no description is set
+        when: the preview renders
+        then: it shows a default message like "Take this survey"
