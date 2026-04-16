@@ -83,16 +83,24 @@ export function RatingQuestion({
         })}
       </div>
 
-      {selected && (
-        <div className="mt-6">
+      <div className="mt-6 flex items-center gap-4">
+        {selected && (
           <button
             onClick={() => onAnswer(selected)}
             className="px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
           >
             OK ✓
           </button>
-        </div>
-      )}
+        )}
+        {!required && !selected && (
+          <button
+            onClick={() => onAnswer(0)}
+            className="px-6 py-2.5 text-gray-400 hover:text-gray-600 transition-colors text-sm"
+          >
+            Skip →
+          </button>
+        )}
+      </div>
     </div>
   );
 }

@@ -122,13 +122,19 @@ export function OqaatSurvey({ surveyId, surveySlug, questions, thankYouMessage }
         await completeResponse();
         setCompleted(true);
       } else {
-        setCurrentIndex(nextIndex);
-        setTransition('enter');
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        setTransition('visible');
+        const nextQuestion = sortedQuestions[nextIndex];
+        if (nextQuestion.type === 'thank_you_screen') {
+          await completeResponse();
+          setCompleted(true);
+        } else {
+          setCurrentIndex(nextIndex);
+          setTransition('enter');
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          setTransition('visible');
+        }
       }
     },
-    [currentIndex, sortedQuestions.length, responseId, surveySlug]
+    [currentIndex, sortedQuestions, responseId, surveySlug]
   );
 
   const handleStart = useCallback(async () => {
@@ -140,12 +146,18 @@ export function OqaatSurvey({ surveyId, surveySlug, questions, thankYouMessage }
     if (nextIndex >= sortedQuestions.length) {
       setCompleted(true);
     } else {
-      setCurrentIndex(nextIndex);
-      setTransition('enter');
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      setTransition('visible');
+      const nextQuestion = sortedQuestions[nextIndex];
+      if (nextQuestion.type === 'thank_you_screen') {
+        await completeResponse();
+        setCompleted(true);
+      } else {
+        setCurrentIndex(nextIndex);
+        setTransition('enter');
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        setTransition('visible');
+      }
     }
-  }, [currentIndex, sortedQuestions.length]);
+  }, [currentIndex, sortedQuestions, responseId]);
 
   if (completed) {
     // Check if last question is a thank_you_screen

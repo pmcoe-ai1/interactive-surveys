@@ -33,7 +33,7 @@ export function DateQuestion({ title, description, required, onAnswer }: DateQue
       setError('Please select a date');
       return;
     }
-    if (value) onAnswer(value);
+    onAnswer(value);
   }
 
   return (
@@ -57,7 +57,7 @@ export function DateQuestion({ title, description, required, onAnswer }: DateQue
       <div className="mt-6 flex items-center gap-4">
         <button
           onClick={submit}
-          disabled={!value}
+          disabled={required && !value}
           className="px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           OK ✓

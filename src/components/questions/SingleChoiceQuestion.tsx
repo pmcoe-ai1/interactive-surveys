@@ -126,12 +126,19 @@ export function SingleChoiceQuestion({
 
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
 
-      {selected && (
+      {selected ? (
         <button
           onClick={submit}
           className="px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
         >
           OK ✓
+        </button>
+      ) : !required && (
+        <button
+          onClick={submit}
+          className="px-6 py-2.5 text-gray-400 hover:text-gray-600 transition-colors text-sm"
+        >
+          Skip →
         </button>
       )}
     </div>
