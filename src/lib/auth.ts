@@ -43,27 +43,22 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    async signIn({ user, account }) {
+    async signIn({ user }) {
       if (!user.email) return false;
-
-      // Set authProvider based on provider used
-      if (account) {
-        const provider = account.provider as AuthProvider;
-        const validProviders: AuthProvider[] = ['email', 'google', 'github'];
-        if (validProviders.includes(provider)) {
-          await prisma.user.upsert({
-            where: { email: user.email },
-            update: { authProvider: provider },
-            create: {
-              email: user.email,
-              name: user.name ?? null,
-              image: user.image ?? null,
-              authProvider: provider,
-            },
-          });
-        }
-      }
       return true;
+    },
+  },
+  events: {
+    async signIn({ user, account }) {
+      if (!account) return;
+      const provider = account.provider as AuthProvider;
+      const validProviders: AuthProvider[] = ['email', 'google', 'github'];
+      if (validProviders.includes(provider)) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { authProvider: provider },
+        });
+      }
     },
   },
   session: {
