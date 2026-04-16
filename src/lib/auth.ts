@@ -57,7 +57,7 @@ export const authOptions: NextAuthOptions = {
               name: user.name ?? null,
               image: user.image ?? null,
               authProvider: provider,
-            },
+            } as any,
           });
         }
       }
