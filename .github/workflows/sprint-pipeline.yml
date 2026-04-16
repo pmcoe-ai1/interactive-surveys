@@ -152,23 +152,36 @@ jobs:
             READ prisma/schema.prisma — this is the current database schema.
             READ src/app.ts if it exists — this is the current app entry point.
 
-            YOUR TASK — implement ALL stories in this sprint:
+            BEFORE WRITING ANY CODE — check what already exists:
+            1. Run: ls src/app/ src/app/api/ src/components/ src/services/ prisma/ 2>/dev/null
+            2. Run: npx tsc --noEmit to see if existing code compiles
+            3. For each story, check if the corresponding API route/page/component exists
+            4. A story is "done" if its route exists AND responds correctly AND compiles
+            5. Only create or modify files for stories that are MISSING or BROKEN
+            6. Do NOT rewrite files that already work. You MAY add missing dependencies.
 
-            1. UPDATE prisma/schema.prisma if new entities or fields are needed.
+            YOUR TASK — implement MISSING stories in this sprint:
+
+            1. UPDATE prisma/schema.prisma only if new entities or fields are needed.
+               Only run prisma migrate if you changed the schema:
                Run: DATABASE_URL=postgresql://surveys:surveys@localhost:5432/surveys_dev npx prisma generate
                Run: DATABASE_URL=postgresql://surveys:surveys@localhost:5432/surveys_dev npx prisma migrate dev --name sprint-${{ github.event.inputs.sprint_number }}
 
-            2. CREATE/UPDATE Next.js pages in src/app/ (App Router convention).
-               CREATE API routes in src/app/api/ — one per resource.
+            2. CREATE/UPDATE Next.js pages in src/app/ (App Router convention) only if missing.
+               CREATE API routes in src/app/api/ only if missing.
                Each route must handle the scenarios defined in the stories.
 
-            3. CREATE service files in src/services/ — business logic separate from routes.
+            3. CREATE service files in src/services/ only if missing.
 
-            4. CREATE React components in src/components/ — one per UI element.
+            4. CREATE React components in src/components/ only if missing.
                Use Tailwind CSS for styling. Support OQAAT transitions (200-300ms).
                Keyboard navigation: Enter to advance, number keys for choices.
 
             5. Run: npx tsc --noEmit — fix ALL type errors before finishing.
+               This step is ALWAYS required, even if no new code was written.
+
+            If ALL stories are already implemented and code compiles cleanly,
+            report "All stories already implemented — no changes needed" and finish early.
 
             Do NOT write tests. Do NOT modify brd-skeleton.yaml. Phase 2 handles that.
             Focus ONLY on working, compiling code that covers every scenario.
@@ -193,16 +206,22 @@ jobs:
 
             Phase 1 already wrote the code. Your job is to fill BRD sections and verify compilation.
 
+            BEFORE MAKING CHANGES:
+            1. Read brd-skeleton.yaml — check if BRD fields are already filled for this sprint
+            2. Only fill sections that are empty or incomplete
+            3. If all BRD sections are already filled, skip to step 5 (compilation check)
+
             1. READ stories/sprint-${{ github.event.inputs.sprint_number }}.yaml
             2. READ brd-skeleton.yaml
-            3. For EACH story in this sprint, fill these BRD fields:
+            3. For EACH story in this sprint, fill these BRD fields (only if empty/incomplete):
                - scenarios: add coverageType (happy/edge/failure), expectedResult (true/false)
                - glossary: add definitions for any entities referenced by these stories
                - error codes: declare all error responses (HTTP status + error body)
                - domainEvents: declare state change events (e.g. survey.created, question.added)
             4. Write the updated brd-skeleton.yaml
-            5. Run: npx tsc --noEmit — if there are type errors from Phase 1, fix them.
-            6. Verify the app starts: DATABASE_URL=postgresql://surveys:surveys@localhost:5432/surveys_dev npx ts-node src/app.ts &
+            5. Run: npx tsc --noEmit — ALWAYS run this, even if no changes were made. Fix any errors.
+            6. Verify the app starts — ALWAYS run this, even if no changes were made:
+               DATABASE_URL=postgresql://surveys:surveys@localhost:5432/surveys_dev npx ts-node src/app.ts &
                Wait 2 seconds, then: curl http://localhost:3000/health || curl http://localhost:3000/api/health
                Kill the background process.
           claude_args: |
