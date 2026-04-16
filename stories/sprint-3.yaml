@@ -1,0 +1,199 @@
+sprint: 3
+goal: Responses are collected with partial saves, creators see a response summary, and Sprint 2 defects are fixed
+stories:
+  # ── Sprint 2 defects ──────────────────────────────────────────────────────
+
+  - id: D2.1
+    title: Fix authorization bypass in question update/delete
+    as_a: survey creator
+    i_want: the API to reject cross-survey question operations
+    so_that: I cannot accidentally or maliciously modify another survey's questions
+    scenarios:
+      - id: D2.1.1
+        given: question Q belongs to survey A
+        when: I send PATCH /api/surveys/B/questions/Q (survey B ≠ survey A)
+        then: the API returns 404
+      - id: D2.1.2
+        given: question Q belongs to survey A
+        when: I send DELETE /api/surveys/B/questions/Q (survey B ≠ survey A)
+        then: the API returns 404
+      - id: D2.1.3
+        given: question Q belongs to survey A
+        when: I send PATCH /api/surveys/A/questions/Q as a different authenticated user
+        then: the API returns 404
+
+  - id: D2.2
+    title: Fix double-advance race condition in RatingQuestion
+    as_a: respondent
+    i_want: clicking a star then OK rapidly to advance exactly once
+    so_that: I do not skip questions unintentionally
+    scenarios:
+      - id: D2.2.1
+        given: I am on a rating question
+        when: I click a star and then click OK within 200ms
+        then: the survey advances exactly once (not twice)
+      - id: D2.2.2
+        given: I click OK on a rating question
+        when: the advance is in progress
+        then: the OK button is disabled until the transition completes
+
+  - id: D2.3
+    title: Fix DropdownQuestion ignoring searchable flag
+    as_a: survey creator
+    i_want: the searchable setting to control whether a search box appears
+    so_that: short option lists do not show an unnecessary search field
+    scenarios:
+      - id: D2.3.1
+        given: a dropdown question with searchable=false
+        when: a respondent opens the dropdown
+        then: no search input is shown
+      - id: D2.3.2
+        given: a dropdown question with searchable=true
+        when: a respondent opens the dropdown
+        then: a search input is shown and filters options by typed text
+
+  - id: D2.4
+    title: Fix wrong HTTP status code for missing response
+    as_a: API consumer
+    i_want: a 404 when a response ID does not exist
+    so_that: clients can distinguish "not found" from "bad request"
+    scenarios:
+      - id: D2.4.1
+        given: a non-existent response ID
+        when: I POST to /api/s/[slug]/responses/[rid]/answers
+        then: the API returns 404, not 400
+      - id: D2.4.2
+        given: a non-existent response ID
+        when: I POST to /api/s/[slug]/responses/[rid]/complete
+        then: the API returns 404, not 400
+
+  - id: D2.5
+    title: Add error handling to responses route
+    as_a: API consumer
+    i_want: a 500 response on server errors instead of an unhandled exception
+    so_that: the app does not crash on database errors
+    scenarios:
+      - id: D2.5.1
+        given: a database error occurs during response creation
+        when: I POST to /api/s/[slug]/responses
+        then: the API returns 500 with a JSON error body
+      - id: D2.5.2
+        given: valid input
+        when: I POST to /api/s/[slug]/responses
+        then: the API returns 201 with the new response ID
+
+  - id: D2.6
+    title: Fix pluralization in MultipleChoiceQuestion error messages
+    as_a: respondent
+    i_want: grammatically correct error messages
+    so_that: the UI reads naturally
+    scenarios:
+      - id: D2.6.1
+        given: a multiple choice question with maxSelections=1
+        when: I try to select a second option
+        then: I see "Select at most 1 option" (not "1 options")
+      - id: D2.6.2
+        given: a multiple choice question with minSelections=2
+        when: I try to advance with only 1 selection
+        then: I see "Select at least 2 options"
+      - id: D2.6.3
+        given: a multiple choice question with maxSelections=3
+        when: I try to select a 4th option
+        then: I see "Select at most 3 options"
+
+  # ── Sprint 3 stories ──────────────────────────────────────────────────────
+
+  - id: S1.4
+    title: Reorder questions via drag-and-drop
+    as_a: survey creator
+    i_want: drag questions to reorder them in the builder
+    so_that: I can arrange questions without deleting and recreating them
+    scenarios:
+      - id: SC1.4.1
+        given: a survey with 3 questions in order A, B, C
+        when: I drag question C above question A
+        then: the order becomes C, A, B
+      - id: SC1.4.2
+        given: I reorder questions
+        when: I reload the page
+        then: the new order is preserved
+      - id: SC1.4.3
+        given: a survey with 1 question
+        when: I view the builder
+        then: no drag handle is shown (nothing to reorder)
+
+  - id: S3.3
+    title: Mobile-first responsive layout
+    as_a: respondent on a mobile device
+    i_want: the survey to be fully usable on a 375px screen
+    so_that: I can complete surveys on my phone
+    scenarios:
+      - id: SC3.3.1
+        given: a viewport of 375px wide
+        when: I view a survey question
+        then: all text and buttons are visible without horizontal scrolling
+      - id: SC3.3.2
+        given: a viewport of 375px wide
+        when: I view the OK / Skip button
+        then: it has a minimum tap target of 44px height
+      - id: SC3.3.3
+        given: a viewport of 375px wide
+        when: I view the survey builder
+        then: the question list and editor stack vertically and are usable
+
+  - id: S5.2
+    title: Partial response capture
+    as_a: respondent
+    i_want: my partial answers to be saved if I leave mid-survey
+    so_that: I do not lose progress if I close the tab accidentally
+    scenarios:
+      - id: SC5.2.1
+        given: I answer questions 1 and 2 of a 5-question survey
+        when: I close the browser without finishing
+        then: a partial response record exists in the database with status partial
+      - id: SC5.2.2
+        given: a partial response exists
+        when: the creator views their response list
+        then: partial responses are counted separately from complete responses
+      - id: SC5.2.3
+        given: I answer question 1
+        when: each answer is submitted
+        then: the answer is saved immediately (not only on final submit)
+
+  - id: S5.3
+    title: Anonymous and identified responses
+    as_a: survey creator
+    i_want: responses to capture the respondent identity when available
+    so_that: I can follow up with identified respondents if needed
+    scenarios:
+      - id: SC5.3.1
+        given: a logged-in user takes a survey
+        when: they submit a response
+        then: the response is linked to their user ID
+      - id: SC5.3.2
+        given: an anonymous visitor takes a survey
+        when: they submit a response
+        then: the response is recorded with a null user ID
+      - id: SC5.3.3
+        given: two users submit the same survey
+        when: the creator views responses
+        then: each response is listed separately with its respondent identity or "Anonymous"
+
+  - id: S6.1
+    title: Response summary overview
+    as_a: survey creator
+    i_want: a summary page showing how many people responded and completion rate
+    so_that: I can gauge survey engagement at a glance
+    scenarios:
+      - id: SC6.1.1
+        given: a survey with 10 complete and 3 partial responses
+        when: I visit the survey results page
+        then: I see "10 responses" and "77% completion rate"
+      - id: SC6.1.2
+        given: a survey with responses
+        when: I view the results page
+        then: I see a list of responses with timestamp and complete/partial status
+      - id: SC6.1.3
+        given: a survey with no responses
+        when: I visit the results page
+        then: I see "No responses yet" and a link to share the survey

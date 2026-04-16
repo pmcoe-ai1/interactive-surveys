@@ -1380,3 +1380,23 @@ unfilled_sections:
   - section: businessContext
     reason: "requires domain understanding"
     filled_during: sprints
+
+  - section: integrations
+    reason: "requires third-party service decisions"
+    filled_during: sprints
+
+  - section: securityRequirements
+    reason: "requires threat modeling"
+    filled_during: sprints
+
+  - section: performanceRequirements
+    reason: "requires load testing"
+    filled_during: sprints
+
+  - section: accessibilityRequirements
+    reason: "requires a11y audit"
+    filled_during: sprints
+
+  - section: analyticsEvents
+    reason: "requires product analytics design"
+    filled_during: sprints
