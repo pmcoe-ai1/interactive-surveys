@@ -1,0 +1,22 @@
+PASS tests/sprint-2/survey-taking.test.ts (8.595 s)
+PASS tests/sprint-2/question-types.test.ts (8.714 s)
+PASS tests/sprint-2/question-builder.test.ts (8.794 s)
+PASS tests/sprint-1/auth.test.ts (8.12 s)
+PASS tests/sprint-1/questions.test.ts (8.44 s)
+PASS tests/sprint-1/infrastructure.test.ts (9.809 s)
+PASS tests/sprint-3/question-reorder.test.ts (7.472 s)
+PASS tests/sprint-1/surveys.test.ts (8.24 s)
+PASS tests/sprint-3/partial-responses.test.ts (7.524 s)
+PASS tests/sprint-3/auth-bypass.test.ts (6.873 s)
+PASS tests/sprint-3/response-identity.test.ts (6.713 s)
+PASS tests/sprint-3/response-status-codes.test.ts (6.401 s)
+PASS tests/sprint-3/ui-components.test.ts
+PASS tests/sprint-3/response-summary.test.ts
+
+Test Suites: 14 passed, 14 total
+Tests:       223 passed, 223 total
+Snapshots:   0 total
+Time:        36.474 s, estimated 46 s
+Ran all test suites.
+Test results written to: test-results.json
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
