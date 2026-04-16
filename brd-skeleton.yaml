@@ -1,13 +1,14 @@
 # BRD Skeleton — Interactive Surveys
 # Generated deterministically from: direction.md, epics.yaml, stories/*.yaml, entities.yaml
 # Step 4b: Every field is a direct copy, string transformation, or arithmetic. No AI judgment.
+# Sprint 1 / Phase 2: Filled coverageType, expectedResult, glossary definitions, errorCodes, domainEvents
 
 header:
   domain: Interactive Surveys
   date: "2026-04-15"
   author: Alan Kwon
-  version: "0.1.0"
-  status: skeleton
+  version: "0.2.0"
+  status: sprint-1-filled
   deployment: railway.com
 
 features:
@@ -441,111 +442,931 @@ intents:
     priority: low
 
 scenarios:
-  # Copied from stories/*.yaml — one entry per Given/When/Then
-  # 150 total scenarios across 50 stories
-  # Format: id, intentRef, given, when, then
-  # Sections NOT filled at skeleton stage: coverageType, expectedResult
+  # Sprint 1 — S0: Infrastructure / Scaffold / Deploy
+  # coverageType: happy | edge | failure
+  # expectedResult: true = action succeeds; false = action fails / error returned
 
-  # E1 scenarios (24)
-  - { id: SC1.1.1, intentRef: I1.1, given: "I am logged in", when: "I click Create Survey and enter a title", then: "a new survey is created and I see the empty builder" }
-  - { id: SC1.1.2, intentRef: I1.1, given: "I am logged in", when: "I try to create a survey without a title", then: "I see a validation error Title is required" }
-  - { id: SC1.1.3, intentRef: I1.1, given: "I am not logged in", when: "I try to access the create survey page", then: "I am redirected to the login page" }
-  - { id: SC1.2.1, intentRef: I1.2, given: "I have an open survey in the builder", when: "I click Add Question and select Short Text", then: "a short text question is appended to the survey" }
-  - { id: SC1.2.2, intentRef: I1.2, given: "I have an open survey", when: "I add a question of each of the 10 types", then: "all 10 render correctly in the builder" }
-  - { id: SC1.2.3, intentRef: I1.2, given: "I have an open survey with 50 questions", when: "I add another question", then: "I see a warning about lower completion rates" }
-  - { id: SC1.3.1, intentRef: I1.3, given: "a survey with questions", when: "I click on a question text", then: "the text becomes editable and I can type changes" }
-  - { id: SC1.3.2, intentRef: I1.3, given: "I am editing a choice question", when: "I add/remove/reorder options", then: "the options update in real-time" }
-  - { id: SC1.3.3, intentRef: I1.3, given: "I am editing a question", when: "I click outside or press Escape", then: "the edit is saved automatically" }
-  - { id: SC1.4.1, intentRef: I1.4, given: "a survey with 3+ questions", when: "I drag question 3 above question 1", then: "the order updates to 3, 1, 2" }
-  - { id: SC1.4.2, intentRef: I1.4, given: "I am dragging a question", when: "I drop it in the same position", then: "nothing changes" }
-  - { id: SC1.4.3, intentRef: I1.4, given: "I am on a mobile device", when: "I use the move up/down buttons", then: "the question reorders (touch-friendly fallback)" }
-  - { id: SC1.5.1, intentRef: I1.5, given: "a survey with questions", when: "I click the delete button on a question and confirm", then: "the question is removed" }
-  - { id: SC1.5.2, intentRef: I1.5, given: "a survey with one question", when: "I delete it", then: "the survey shows an empty state" }
-  - { id: SC1.5.3, intentRef: I1.5, given: "I click delete", when: "the confirmation dialog appears and I cancel", then: "the question is not removed" }
-  - { id: SC1.6.1, intentRef: I1.6, given: "a survey with a configured question", when: "I click Duplicate", then: "a copy appears below with the same type, text, and options" }
-  - { id: SC1.6.2, intentRef: I1.6, given: "I duplicate a question with conditional logic", when: "the copy is created", then: "the logic rules are not copied" }
-  - { id: SC1.6.3, intentRef: I1.6, given: "I duplicate a question", when: "the copy appears", then: "its title is suffixed with (copy)" }
-  - { id: SC1.7.1, intentRef: I1.7, given: "I am in the builder with questions", when: "I click Preview", then: "I see the OQAAT respondent view with my questions" }
-  - { id: SC1.7.2, intentRef: I1.7, given: "I am previewing", when: "I make changes in the builder", then: "the preview updates in real-time" }
-  - { id: SC1.7.3, intentRef: I1.7, given: "I am previewing on desktop", when: "I toggle Mobile preview", then: "the preview shows a mobile viewport width" }
-  - { id: SC1.8.1, intentRef: I1.8, given: "a survey with at least one question", when: "I click Publish", then: "the survey becomes live and I see the shareable link" }
-  - { id: SC1.8.2, intentRef: I1.8, given: "a survey with no questions", when: "I try to publish", then: "I see an error" }
-  - { id: SC1.8.3, intentRef: I1.8, given: "a published survey", when: "I make edits", then: "I see a Republish button" }
+  - id: SC0.1.1
+    intentRef: null
+    storyRef: S0.1
+    given: "a new project directory"
+    when: "I run the scaffold script"
+    then: "a Next.js 14 app with TypeScript, Prisma, and Tailwind CSS is created"
+    coverageType: happy
+    expectedResult: true
 
-  # Remaining 126 scenarios follow the same pattern — copied from E2-E10 stories
-  # (Abbreviated here to keep BRD skeleton manageable — full expansion during sprints)
+  - id: SC0.1.2
+    intentRef: null
+    storyRef: S0.1
+    given: "the scaffolded project"
+    when: "I run npm run dev"
+    then: "the app starts on localhost:3000 with a hello world page"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC0.1.3
+    intentRef: null
+    storyRef: S0.1
+    given: "the scaffolded project"
+    when: "I run npx tsc --noEmit"
+    then: "there are zero TypeScript errors"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC0.2.1
+    intentRef: null
+    storyRef: S0.2
+    given: "a Railway account"
+    when: "I create a new project with a PostgreSQL plugin"
+    then: "the database is provisioned and DATABASE_URL is available"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC0.2.2
+    intentRef: null
+    storyRef: S0.2
+    given: "the Railway project"
+    when: "I deploy the scaffolded app"
+    then: "it connects to the Railway PostgreSQL instance"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC0.2.3
+    intentRef: null
+    storyRef: S0.2
+    given: "the database is provisioned"
+    when: "I run npx prisma migrate deploy"
+    then: "migrations run successfully against the Railway database"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC0.3.1
+    intentRef: null
+    storyRef: S0.3
+    given: "the GitHub repo is connected to Railway"
+    when: "I push to main"
+    then: "Railway auto-builds and deploys the latest code"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC0.3.2
+    intentRef: null
+    storyRef: S0.3
+    given: "a successful deployment"
+    when: "I visit the Railway URL"
+    then: "I see the running application"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC0.3.3
+    intentRef: null
+    storyRef: S0.3
+    given: "a deployment fails"
+    when: "I check Railway logs"
+    then: "I see the build error and the previous version stays live"
+    coverageType: failure
+    expectedResult: false
+
+  - id: SC0.4.1
+    intentRef: null
+    storyRef: S0.4
+    given: "a new migration file exists"
+    when: "the deploy runs"
+    then: "prisma migrate deploy executes before the app starts"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC0.4.2
+    intentRef: null
+    storyRef: S0.4
+    given: "no new migrations"
+    when: "the deploy runs"
+    then: "the migration step completes instantly with no changes"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SC0.4.3
+    intentRef: null
+    storyRef: S0.4
+    given: "a migration fails"
+    when: "the deploy runs"
+    then: "the deployment fails and the previous version stays live"
+    coverageType: failure
+    expectedResult: false
+
+  # Sprint 1 — S8: Authentication and Creator Dashboard
+
+  - id: SC8.1.1
+    intentRef: I8.1
+    storyRef: S8.1
+    given: "I am on the sign-up page"
+    when: "I enter my email and click Sign Up"
+    then: "I receive a magic link email and see a confirmation message"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC8.1.2
+    intentRef: I8.1
+    storyRef: S8.1
+    given: "I click Sign up with Google"
+    when: "I authorize the app"
+    then: "my account is created and I land on the dashboard"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC8.1.3
+    intentRef: I8.1
+    storyRef: S8.1
+    given: "I try to sign up with an email already in use"
+    when: "I submit"
+    then: "I see An account with this email already exists"
+    coverageType: failure
+    expectedResult: false
+
+  - id: SC8.2.1
+    intentRef: I8.2
+    storyRef: S8.2
+    given: "I am on the login page"
+    when: "I enter my email and click Log In"
+    then: "I receive a magic link email"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC8.2.2
+    intentRef: I8.2
+    storyRef: S8.2
+    given: "I click the magic link in my email"
+    when: "it opens in my browser"
+    then: "I am logged in and redirected to the dashboard"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC8.2.3
+    intentRef: I8.2
+    storyRef: S8.2
+    given: "I click Sign in with GitHub"
+    when: "I authorize"
+    then: "I am logged in and see my dashboard"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC8.3.1
+    intentRef: I8.3
+    storyRef: S8.3
+    given: "I have 5 surveys"
+    when: "I open the dashboard"
+    then: "I see a list/grid of all 5 with title, response count, status, and last edited date"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC8.3.2
+    intentRef: I8.3
+    storyRef: S8.3
+    given: "I have no surveys"
+    when: "I open the dashboard"
+    then: "I see an empty state with a Create your first survey button"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SC8.3.3
+    intentRef: I8.3
+    storyRef: S8.3
+    given: "I click on a survey card"
+    when: "the page loads"
+    then: "I am taken to the survey builder for that survey"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC8.4.1
+    intentRef: I8.4
+    storyRef: S8.4
+    given: "I am logged in"
+    when: "I click Logout"
+    then: "my session ends and I am redirected to the login page"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC8.4.2
+    intentRef: I8.4
+    storyRef: S8.4
+    given: "I am logged out"
+    when: "I try to access the dashboard URL directly"
+    then: "I am redirected to the login page"
+    coverageType: failure
+    expectedResult: false
+
+  - id: SC8.4.3
+    intentRef: I8.4
+    storyRef: S8.4
+    given: "my session expires"
+    when: "I try to perform an action"
+    then: "I am prompted to log in again"
+    coverageType: failure
+    expectedResult: false
+
+  # Sprint 1 — E1: Survey Builder (S1.1, S1.2)
+
+  - id: SC1.1.1
+    intentRef: I1.1
+    storyRef: S1.1
+    given: "I am logged in"
+    when: "I click Create Survey and enter a title"
+    then: "a new survey is created and I see the empty builder"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC1.1.2
+    intentRef: I1.1
+    storyRef: S1.1
+    given: "I am logged in"
+    when: "I try to create a survey without a title"
+    then: "I see a validation error Title is required"
+    coverageType: failure
+    expectedResult: false
+
+  - id: SC1.1.3
+    intentRef: I1.1
+    storyRef: S1.1
+    given: "I am not logged in"
+    when: "I try to access the create survey page"
+    then: "I am redirected to the login page"
+    coverageType: failure
+    expectedResult: false
+
+  - id: SC1.2.1
+    intentRef: I1.2
+    storyRef: S1.2
+    given: "I have an open survey in the builder"
+    when: "I click Add Question and select Short Text"
+    then: "a short text question is appended to the survey"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC1.2.2
+    intentRef: I1.2
+    storyRef: S1.2
+    given: "I have an open survey"
+    when: "I add a question of each of the 10 types"
+    then: "all 10 render correctly in the builder"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC1.2.3
+    intentRef: I1.2
+    storyRef: S1.2
+    given: "I have an open survey with 50 questions"
+    when: "I add another question"
+    then: "I see a warning about lower completion rates"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SC1.3.1
+    intentRef: I1.3
+    given: "a survey with questions"
+    when: "I click on a question text"
+    then: "the text becomes editable and I can type changes"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC1.3.2
+    intentRef: I1.3
+    given: "I am editing a choice question"
+    when: "I add/remove/reorder options"
+    then: "the options update in real-time"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC1.3.3
+    intentRef: I1.3
+    given: "I am editing a question"
+    when: "I click outside or press Escape"
+    then: "the edit is saved automatically"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC1.4.1
+    intentRef: I1.4
+    given: "a survey with 3+ questions"
+    when: "I drag question 3 above question 1"
+    then: "the order updates to 3, 1, 2"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC1.4.2
+    intentRef: I1.4
+    given: "I am dragging a question"
+    when: "I drop it in the same position"
+    then: "nothing changes"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SC1.4.3
+    intentRef: I1.4
+    given: "I am on a mobile device"
+    when: "I use the move up/down buttons"
+    then: "the question reorders (touch-friendly fallback)"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SC1.5.1
+    intentRef: I1.5
+    given: "a survey with questions"
+    when: "I click the delete button on a question and confirm"
+    then: "the question is removed"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC1.5.2
+    intentRef: I1.5
+    given: "a survey with one question"
+    when: "I delete it"
+    then: "the survey shows an empty state"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SC1.5.3
+    intentRef: I1.5
+    given: "I click delete"
+    when: "the confirmation dialog appears and I cancel"
+    then: "the question is not removed"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SC1.6.1
+    intentRef: I1.6
+    given: "a survey with a configured question"
+    when: "I click Duplicate"
+    then: "a copy appears below with the same type, text, and options"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC1.6.2
+    intentRef: I1.6
+    given: "I duplicate a question with conditional logic"
+    when: "the copy is created"
+    then: "the logic rules are not copied"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SC1.6.3
+    intentRef: I1.6
+    given: "I duplicate a question"
+    when: "the copy appears"
+    then: "its title is suffixed with (copy)"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SC1.7.1
+    intentRef: I1.7
+    given: "I am in the builder with questions"
+    when: "I click Preview"
+    then: "I see the OQAAT respondent view with my questions"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC1.7.2
+    intentRef: I1.7
+    given: "I am previewing"
+    when: "I make changes in the builder"
+    then: "the preview updates in real-time"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC1.7.3
+    intentRef: I1.7
+    given: "I am previewing on desktop"
+    when: "I toggle Mobile preview"
+    then: "the preview shows a mobile viewport width"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SC1.8.1
+    intentRef: I1.8
+    given: "a survey with at least one question"
+    when: "I click Publish"
+    then: "the survey becomes live and I see the shareable link"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC1.8.2
+    intentRef: I1.8
+    given: "a survey with no questions"
+    when: "I try to publish"
+    then: "I see an error"
+    coverageType: failure
+    expectedResult: false
+
+  - id: SC1.8.3
+    intentRef: I1.8
+    given: "a published survey"
+    when: "I make edits"
+    then: "I see a Republish button"
+    coverageType: edge
+    expectedResult: true
+
+  # Sprint 1 — E2: Question Types (S2.1, S2.3, S2.6, S2.9)
+
+  - id: SC2.1.1
+    intentRef: I2.1
+    storyRef: S2.1
+    given: "I add a short text question"
+    when: "a respondent types an answer and presses Enter"
+    then: "the answer is saved and the next question appears"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC2.1.2
+    intentRef: I2.1
+    storyRef: S2.1
+    given: "I set validation to email"
+    when: "a respondent enters an invalid email"
+    then: "they see a validation error"
+    coverageType: failure
+    expectedResult: false
+
+  - id: SC2.1.3
+    intentRef: I2.1
+    storyRef: S2.1
+    given: "I set a placeholder text"
+    when: "the respondent sees the question"
+    then: "the placeholder appears in the input field"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC2.3.1
+    intentRef: I2.3
+    storyRef: S2.3
+    given: "a single choice question with 4 options"
+    when: "a respondent clicks option B"
+    then: "option B is selected and others are deselected"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC2.3.2
+    intentRef: I2.3
+    storyRef: S2.3
+    given: "a single choice question"
+    when: "a respondent presses number key 2"
+    then: "the second option is selected (keyboard shortcut)"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SC2.3.3
+    intentRef: I2.3
+    storyRef: S2.3
+    given: "a single choice with an Other option enabled"
+    when: "the respondent selects Other"
+    then: "a text input appears for their custom answer"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SC2.6.1
+    intentRef: I2.6
+    storyRef: S2.6
+    given: "a yes/no question"
+    when: "a respondent clicks Yes"
+    then: "Yes is selected and highlighted"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC2.6.2
+    intentRef: I2.6
+    storyRef: S2.6
+    given: "a yes/no question"
+    when: "a respondent presses Y or N on keyboard"
+    then: "the corresponding option is selected"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SC2.6.3
+    intentRef: I2.6
+    storyRef: S2.6
+    given: "a yes/no question"
+    when: "the respondent changes their mind and clicks No"
+    then: "Yes is deselected and No is selected"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC2.9.1
+    intentRef: I2.9
+    storyRef: S2.9
+    given: "a survey with a welcome screen"
+    when: "a respondent opens the survey link"
+    then: "they see the welcome title, description, and a Start button"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC2.9.2
+    intentRef: I2.9
+    storyRef: S2.9
+    given: "a welcome screen with a custom button label"
+    when: "the respondent sees it"
+    then: "the button shows the custom label instead of Start"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SC2.9.3
+    intentRef: I2.9
+    storyRef: S2.9
+    given: "a welcome screen"
+    when: "the respondent clicks Start"
+    then: "the first question appears with a smooth transition"
+    coverageType: happy
+    expectedResult: true
 
 glossary:
-  # Term IDs extracted from story text + entities from Step 4a
-  # Definitions NOT filled at skeleton stage
   - id: G1
     term: Survey
     entityRef: Survey
+    definition: >
+      A collection of questions created and owned by a User, with configurable settings
+      (title, description, slug, status, theme, response limits, open/close schedule).
+      A Survey progresses through statuses: draft → live → closed.
+
   - id: G2
     term: Question
     entityRef: Question
+    definition: >
+      An individual item within a Survey, defined by a QuestionType and display order.
+      Questions carry type-specific properties (placeholder, validation, rating style,
+      options, etc.) and are presented to respondents one at a time (OQAAT).
+
   - id: G3
     term: QuestionOption
     entityRef: QuestionOption
+    definition: >
+      A selectable answer choice belonging to a choice-based Question
+      (single_choice, multiple_choice, or dropdown). Options have display text and
+      an explicit order index.
+
   - id: G4
     term: Response
     entityRef: Response
+    definition: >
+      A respondent's interaction session with a published Survey. A Response starts
+      in status "partial" when the respondent opens the survey and transitions to
+      "complete" when they submit the final answer. Optionally linked to a browser
+      fingerprint for duplicate prevention.
+
   - id: G5
     term: Answer
     entityRef: Answer
+    definition: >
+      A single respondent's reply to one Question within a Response session. Stores
+      the answer payload in the appropriate typed field: value (text), selectedOptions
+      (JSON array of option IDs), numericValue (rating/number), or dateValue (date).
+
   - id: G6
     term: LogicRule
     entityRef: LogicRule
+    definition: >
+      A conditional rule attached to a Survey that controls respondent flow.
+      A rule has a type (skip_to, show_if, hide_if), a source Question whose answer
+      is evaluated, a conditionValue to match against, and a target Question to
+      navigate to or toggle visibility on.
+
   - id: G7
     term: User
     entityRef: User
+    definition: >
+      An authenticated survey creator identified by a unique email address.
+      Users sign up via magic link (email) or OAuth (Google, GitHub). Each User
+      owns their Surveys exclusively; ownership is enforced on all write operations.
+
   - id: G8
     term: SurveyTemplate
     entityRef: SurveyTemplate
+    definition: >
+      A pre-built Survey scaffold with a predefined set of questions for common
+      use cases. Templates are categorised (nps, csat, event_feedback,
+      product_feedback, employee_pulse) and serve as a starting point for new Surveys.
+
   - id: G9
     term: OQAAT
     definition: "One Question At A Time — interaction pattern where respondents see a single question per screen"
+
   - id: G10
     term: Magic Link
     definition: "Passwordless authentication via a one-time URL sent to the user's email"
+
   - id: G11
     term: Skip Logic
     definition: "Conditional rule that skips the respondent to a different question based on their answer"
+
   - id: G12
     term: Completion Funnel
     definition: "Analytics visualization showing respondent drop-off at each question"
+
+  - id: G13
+    term: Survey Builder
+    definition: >
+      The creator-facing interface for constructing a Survey. Supports adding,
+      editing, reordering, duplicating, and deleting Questions, plus live preview
+      and publish actions.
+
+  - id: G14
+    term: Slug
+    definition: >
+      A URL-safe string derived from the Survey title, used to form the public
+      respondent URL (e.g., /s/my-survey-abc123). Slugs are unique across all surveys.
+
+  - id: G15
+    term: Draft
+    definition: >
+      The default SurveyStatus after creation. A draft survey is editable and
+      accessible only to its owner; respondents cannot submit responses to a draft
+      survey in production.
+
+  - id: G16
+    term: Browser Fingerprint
+    definition: >
+      A client-supplied identifier (sent via the x-browser-fingerprint header or
+      request body) used for duplicate-response prevention when anonymousResponses
+      is enabled.
 
 entities:
   # Copied from entities.yaml — 8 entities, 78 fields, 17 relationships
   # Full entity definitions with fields, types, and relationships
   source: entities.yaml
 
-# ─── Sections NOT filled at skeleton stage ─────────────────────
-# These sections will be filled incrementally during sprints:
+# ─── Error Codes (filled Sprint 1) ────────────────────────────────────────────
+
+errorCodes:
+  # Health
+  - code: HEALTH_DB_ERROR
+    httpStatus: 503
+    body: { status: "error", database: "disconnected" }
+    description: "Database unreachable at health-check time"
+    routes:
+      - "GET /health"
+
+  # Authentication
+  - code: UNAUTHORIZED
+    httpStatus: 401
+    body: { error: "Unauthorized" }
+    description: "Request lacks a valid session; user must log in"
+    routes:
+      - "GET /api/surveys"
+      - "POST /api/surveys"
+      - "GET /api/surveys/:id"
+      - "PATCH /api/surveys/:id"
+      - "DELETE /api/surveys/:id"
+      - "GET /api/surveys/:id/questions"
+      - "POST /api/surveys/:id/questions"
+      - "PUT /api/surveys/:id/questions"
+      - "PATCH /api/surveys/:id/questions/:qid"
+      - "DELETE /api/surveys/:id/questions/:qid"
+
+  # Survey — creation / update / delete
+  - code: SURVEY_TITLE_REQUIRED
+    httpStatus: 400
+    body: { error: "Title is required" }
+    description: "POST /api/surveys called with missing or blank title"
+    routes:
+      - "POST /api/surveys"
+
+  - code: SURVEY_NOT_FOUND
+    httpStatus: 404
+    body: { error: "Survey not found" }
+    description: "No survey exists with the given ID owned by the requesting user"
+    routes:
+      - "GET /api/surveys/:id"
+      - "PATCH /api/surveys/:id"
+      - "DELETE /api/surveys/:id"
+      - "GET /api/surveys/:id/questions"
+      - "POST /api/surveys/:id/questions"
+      - "PUT /api/surveys/:id/questions"
+      - "PATCH /api/surveys/:id/questions/:qid"
+      - "DELETE /api/surveys/:id/questions/:qid"
+
+  - code: SURVEY_UPDATE_FAILED
+    httpStatus: 400
+    body: { error: "Failed to update survey" }
+    description: "Generic survey update failure (e.g. invalid field value)"
+    routes:
+      - "PATCH /api/surveys/:id"
+
+  - code: SURVEY_DELETE_FAILED
+    httpStatus: 400
+    body: { error: "Failed to delete survey" }
+    description: "Generic survey deletion failure"
+    routes:
+      - "DELETE /api/surveys/:id"
+
+  - code: SURVEY_CREATE_FAILED
+    httpStatus: 400
+    body: { error: "Failed to create survey" }
+    description: "Generic survey creation failure (e.g. slug collision after retries)"
+    routes:
+      - "POST /api/surveys"
+
+  # Question
+  - code: QUESTION_TYPE_REQUIRED
+    httpStatus: 400
+    body: { error: "Question type is required" }
+    description: "POST /api/surveys/:id/questions called without a type field"
+    routes:
+      - "POST /api/surveys/:id/questions"
+
+  - code: QUESTION_TYPE_INVALID
+    httpStatus: 400
+    body: { error: "Invalid question type: {type}" }
+    description: "Supplied type value is not one of the 10 valid QuestionType enum values"
+    routes:
+      - "POST /api/surveys/:id/questions"
+
+  - code: QUESTION_REORDER_INVALID
+    httpStatus: 400
+    body: { error: "orderedIds array is required" }
+    description: "PUT /api/surveys/:id/questions called without an orderedIds array"
+    routes:
+      - "PUT /api/surveys/:id/questions"
+
+  - code: QUESTION_ADD_FAILED
+    httpStatus: 400
+    body: { error: "Failed to add question" }
+    description: "Generic failure adding a question"
+    routes:
+      - "POST /api/surveys/:id/questions"
+
+  - code: QUESTION_UPDATE_FAILED
+    httpStatus: 400
+    body: { error: "Failed to update question" }
+    description: "Generic failure updating a question"
+    routes:
+      - "PATCH /api/surveys/:id/questions/:qid"
+
+  - code: QUESTION_DELETE_FAILED
+    httpStatus: 400
+    body: { error: "Failed to delete question" }
+    description: "Generic failure deleting a question"
+    routes:
+      - "DELETE /api/surveys/:id/questions/:qid"
+
+  # Response / Respondent
+  - code: RESPONSE_SURVEY_NOT_FOUND
+    httpStatus: 404
+    body: { error: "Survey not found" }
+    description: "No published survey exists at the given slug"
+    routes:
+      - "POST /api/s/:slug/responses"
+
+  - code: RESPONSE_SURVEY_CLOSED
+    httpStatus: 403
+    body: { error: "Survey is closed" }
+    description: "Respondent attempted to start a response on a closed survey"
+    routes:
+      - "POST /api/s/:slug/responses"
+
+  - code: ANSWER_QUESTION_REQUIRED
+    httpStatus: 400
+    body: { error: "questionId is required" }
+    description: "POST answers called without a questionId"
+    routes:
+      - "POST /api/s/:slug/responses/:rid/answers"
+
+  - code: ANSWER_SAVE_FAILED
+    httpStatus: 400
+    body: { error: "Failed to save answer" }
+    description: "Generic failure saving an answer (e.g. invalid responseId)"
+    routes:
+      - "POST /api/s/:slug/responses/:rid/answers"
+
+  - code: RESPONSE_NOT_FOUND
+    httpStatus: 400
+    body: { error: "Response not found" }
+    description: "completeResponse called with an unknown responseId"
+    routes:
+      - "POST /api/s/:slug/responses/:rid/complete"
+
+  - code: RESPONSE_COMPLETE_FAILED
+    httpStatus: 400
+    body: { error: "Failed to complete response" }
+    description: "Generic failure marking a response complete"
+    routes:
+      - "POST /api/s/:slug/responses/:rid/complete"
+
+# ─── Domain Events (filled Sprint 1) ──────────────────────────────────────────
+
+domainEvents:
+  # Authentication & User lifecycle
+  - event: user.signed_up
+    trigger: "New User row created via NextAuth signIn callback"
+    payload:
+      userId: string
+      email: string
+      authProvider: "email | google | github"
+    storyRefs: [S8.1]
+
+  - event: user.signed_in
+    trigger: "Returning user authenticates successfully (magic link verified or OAuth token exchanged)"
+    payload:
+      userId: string
+      authProvider: "email | google | github"
+    storyRefs: [S8.2]
+
+  - event: user.signed_out
+    trigger: "User calls NextAuth signOut; session row deleted from database"
+    payload:
+      userId: string
+    storyRefs: [S8.4]
+
+  # Survey lifecycle
+  - event: survey.created
+    trigger: "POST /api/surveys returns 201; Survey row inserted with status=draft"
+    payload:
+      surveyId: string
+      userId: string
+      title: string
+      slug: string
+    storyRefs: [S1.1]
+
+  - event: survey.updated
+    trigger: "PATCH /api/surveys/:id returns 200; Survey row modified"
+    payload:
+      surveyId: string
+      userId: string
+      changedFields: "string[]"
+    storyRefs: [S1.1]
+
+  - event: survey.published
+    trigger: "PATCH /api/surveys/:id with status=live; survey becomes accessible to respondents"
+    payload:
+      surveyId: string
+      userId: string
+      slug: string
+    storyRefs: [S1.1]
+
+  - event: survey.deleted
+    trigger: "DELETE /api/surveys/:id; Survey row and all cascaded children removed"
+    payload:
+      surveyId: string
+      userId: string
+    storyRefs: [S1.1]
+
+  # Question lifecycle
+  - event: question.added
+    trigger: "POST /api/surveys/:id/questions returns 201; Question row inserted"
+    payload:
+      questionId: string
+      surveyId: string
+      type: string
+      order: number
+      warningIssued: boolean
+    storyRefs: [S1.2, S2.1, S2.3, S2.6, S2.9]
+
+  - event: question.updated
+    trigger: "PATCH /api/surveys/:id/questions/:qid returns 200; Question row modified"
+    payload:
+      questionId: string
+      surveyId: string
+      changedFields: "string[]"
+    storyRefs: [S1.2]
+
+  - event: question.deleted
+    trigger: "DELETE /api/surveys/:id/questions/:qid; Question row removed and remaining questions re-ordered"
+    payload:
+      questionId: string
+      surveyId: string
+    storyRefs: [S1.2]
+
+  - event: question.reordered
+    trigger: "PUT /api/surveys/:id/questions with orderedIds array; all question order fields updated"
+    payload:
+      surveyId: string
+      orderedIds: "string[]"
+    storyRefs: [S1.2]
+
+  # Response lifecycle
+  - event: response.started
+    trigger: "POST /api/s/:slug/responses returns 201; Response row inserted with status=partial"
+    payload:
+      responseId: string
+      surveyId: string
+      browserFingerprint: "string | null"
+    storyRefs: [S2.1, S2.3, S2.6, S2.9]
+
+  - event: response.answer_saved
+    trigger: "POST /api/s/:slug/responses/:rid/answers returns 201; Answer row inserted"
+    payload:
+      answerId: string
+      responseId: string
+      questionId: string
+    storyRefs: [S2.1, S2.3, S2.6, S2.9]
+
+  - event: response.completed
+    trigger: "POST /api/s/:slug/responses/:rid/complete; Response status set to complete and survey responseCount incremented"
+    payload:
+      responseId: string
+      surveyId: string
+      completionTimeSeconds: number
+    storyRefs: [S2.1, S2.3, S2.6, S2.9]
+
+# ─── Sections still unfilled ───────────────────────────────────────────────────
 
 unfilled_sections:
-  - section: scenario.coverageType
-    reason: "requires judgment"
-    filled_during: sprints
-
-  - section: scenario.expectedResult
-    reason: "requires judgment"
-    filled_during: sprints
-
   - section: glossary.precisionTypes
     reason: "requires domain modeling"
-    filled_during: sprints
-
-  - section: glossary.definitions
-    reason: "requires domain modeling (8 entity terms)"
-    filled_during: sprints
-
-  - section: errorCodes
-    reason: "requires implementation"
-    filled_during: sprints
-
-  - section: domainEvents
-    reason: "requires implementation"
     filled_during: sprints
 
   - section: pageBriefs

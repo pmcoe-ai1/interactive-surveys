@@ -51,13 +51,13 @@ export const authOptions: NextAuthOptions = {
         if (validProviders.includes(provider)) {
           await prisma.user.upsert({
             where: { email: user.email },
-            update: {},
+            update: { authProvider: provider },
             create: {
               email: user.email,
               name: user.name ?? null,
               image: user.image ?? null,
               authProvider: provider,
-            } as any,
+            },
           });
         }
       }
