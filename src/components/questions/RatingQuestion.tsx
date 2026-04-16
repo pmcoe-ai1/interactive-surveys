@@ -23,6 +23,7 @@ export function RatingQuestion({
   const [selected, setSelected] = useState<number | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
   const max = ratingMax ?? 5;
+  const effectiveStyle = ratingStyle ?? 'stars';
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -61,10 +62,10 @@ export function RatingQuestion({
               onMouseLeave={() => setHovered(null)}
               className="transition-transform hover:scale-110 active:scale-95"
             >
-              {ratingStyle === 'stars' && (
+              {effectiveStyle === 'stars' && (
                 <span className={`text-3xl ${isActive ? 'text-yellow-400' : 'text-gray-300'}`}>★</span>
               )}
-              {ratingStyle === 'numeric' && (
+              {effectiveStyle === 'numeric' && (
                 <span className={`flex items-center justify-center w-10 h-10 rounded-full border-2 font-bold text-sm ${
                   isActive
                     ? 'border-indigo-500 bg-indigo-500 text-white'
@@ -73,7 +74,7 @@ export function RatingQuestion({
                   {n}
                 </span>
               )}
-              {ratingStyle === 'emoji' && (
+              {effectiveStyle === 'emoji' && (
                 <span className={`text-3xl ${n === display ? 'scale-125' : 'opacity-50'} transition-all`}>
                   {emojis[n - 1] ?? '😊'}
                 </span>
