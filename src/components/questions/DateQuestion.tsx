@@ -58,7 +58,7 @@ export function DateQuestion({ title, description, required, onAnswer }: DateQue
         <button
           onClick={submit}
           disabled={required && !value}
-          className="px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-6 py-3 min-h-[44px] bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           OK ✓
         </button>

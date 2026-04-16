@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { RatingStyle } from '@prisma/client';
 
 interface RatingQuestionProps {
@@ -22,6 +22,8 @@ export function RatingQuestion({
 }: RatingQuestionProps) {
   const [selected, setSelected] = useState<number | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
+  // D2.2: guard against double-advance — once advancing, disable further calls
+  const advancing = useRef(false);
   const max = ratingMax ?? 5;
   const effectiveStyle = ratingStyle ?? 'stars';
 
@@ -29,17 +31,38 @@ export function RatingQuestion({
     function handleKeyDown(e: KeyboardEvent) {
       const num = parseInt(e.key);
       if (!isNaN(num) && num >= 1 && num <= max) {
-        setSelected(num);
-        setTimeout(() => onAnswer(num), 200);
+        if (!advancing.current) {
+          setSelected(num);
+          setTimeout(() => {
+            if (!advancing.current) {
+              advancing.current = true;
+              onAnswer(num);
+            }
+          }, 200);
+        }
       }
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [max, onAnswer]);
 
+  // D2.2.1: clicking a star sets a 200ms auto-advance but can be interrupted by OK
   function handleSelect(value: number) {
+    if (advancing.current) return;
     setSelected(value);
-    setTimeout(() => onAnswer(value), 200);
+    setTimeout(() => {
+      if (!advancing.current) {
+        advancing.current = true;
+        onAnswer(value);
+      }
+    }, 200);
+  }
+
+  // D2.2.2: OK button is disabled while advancing; clicking OK cancels the timer race
+  function handleOk() {
+    if (advancing.current || selected === null) return;
+    advancing.current = true;
+    onAnswer(selected);
   }
 
   const display = hovered ?? selected;
@@ -60,7 +83,8 @@ export function RatingQuestion({
               onClick={() => handleSelect(n)}
               onMouseEnter={() => setHovered(n)}
               onMouseLeave={() => setHovered(null)}
-              className="transition-transform hover:scale-110 active:scale-95"
+              disabled={advancing.current}
+              className="transition-transform hover:scale-110 active:scale-95 disabled:opacity-50"
             >
               {effectiveStyle === 'stars' && (
                 <span className={`text-3xl ${isActive ? 'text-yellow-400' : 'text-gray-300'}`}>★</span>
@@ -85,18 +109,20 @@ export function RatingQuestion({
       </div>
 
       <div className="mt-6 flex items-center gap-4">
-        {selected && (
+        {selected !== null && (
+          // D2.2.2: disabled while advancing in progress
           <button
-            onClick={() => onAnswer(selected)}
-            className="px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+            onClick={handleOk}
+            disabled={advancing.current}
+            className="px-6 py-3 min-h-[44px] bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             OK ✓
           </button>
         )}
-        {!required && !selected && (
+        {!required && selected === null && (
           <button
-            onClick={() => onAnswer(0)}
-            className="px-6 py-2.5 text-gray-400 hover:text-gray-600 transition-colors text-sm"
+            onClick={() => { if (!advancing.current) { advancing.current = true; onAnswer(0); } }}
+            className="px-6 py-3 min-h-[44px] text-gray-400 hover:text-gray-600 transition-colors text-sm"
           >
             Skip →
           </button>

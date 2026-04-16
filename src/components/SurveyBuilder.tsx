@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { QuestionType, SurveyStatus } from '@prisma/client';
 import { QuestionTypePicker } from './QuestionTypePicker';
 import { QuestionBuilderItem, QuestionData, QuestionUpdateInput } from './QuestionBuilderItem';
@@ -21,6 +21,9 @@ export function SurveyBuilder({ surveyId, initialQuestions, surveyTitle, surveyS
   const [status, setStatus] = useState<SurveyStatus>(initialStatus);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [publishSuccess, setPublishSuccess] = useState(false);
+  // S1.4: drag-and-drop reorder state
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const dragSourceIdx = useRef<number | null>(null);
 
   const handleAddQuestion = useCallback(async (type: QuestionType) => {
     setShowPicker(false);
@@ -115,6 +118,41 @@ export function SurveyBuilder({ surveyId, initialQuestions, surveyTitle, surveyS
     setQuestions((prev) => [...prev, copy]);
   }, [surveyId]);
 
+  // S1.4: drag-and-drop handlers (SC1.4.1, SC1.4.2)
+  const handleDragStart = useCallback((idx: number) => {
+    dragSourceIdx.current = idx;
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    setDragOverIdx(idx);
+  }, []);
+
+  const handleDrop = useCallback(async (targetIdx: number) => {
+    const fromIdx = dragSourceIdx.current;
+    setDragOverIdx(null);
+    dragSourceIdx.current = null;
+    if (fromIdx === null || fromIdx === targetIdx) return;
+
+    // Reorder: move item at fromIdx to targetIdx
+    const sorted = [...questions].sort((a, b) => a.order - b.order);
+    const [moved] = sorted.splice(fromIdx, 1);
+    sorted.splice(targetIdx, 0, moved);
+    const reordered = sorted.map((q, i) => ({ ...q, order: i }));
+    setQuestions(reordered);
+
+    await fetch(`/api/surveys/${surveyId}/questions`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderedIds: reordered.map((q) => q.id) }),
+    });
+  }, [questions, surveyId]);
+
+  const handleDragEnd = useCallback(() => {
+    setDragOverIdx(null);
+    dragSourceIdx.current = null;
+  }, []);
+
   // S1.8: Publish survey (SC1.8.1, SC1.8.2, SC1.8.3)
   const handlePublish = useCallback(async () => {
     setPublishError(null);
@@ -143,12 +181,13 @@ export function SurveyBuilder({ surveyId, initialQuestions, surveyTitle, surveyS
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="font-semibold text-gray-900">{surveyTitle}</h1>
+        {/* SC3.3.3: flex-wrap so header items stack on narrow screens */}
+        <div className="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="min-w-0">
+            <h1 className="font-semibold text-gray-900 truncate">{surveyTitle}</h1>
             <p className="text-xs text-gray-500">{questions.length} question{questions.length !== 1 ? 's' : ''}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center flex-wrap gap-2">
             {surveySlug && (
               <a
                 href={`/s/${surveySlug}`}
@@ -159,6 +198,13 @@ export function SurveyBuilder({ surveyId, initialQuestions, surveyTitle, surveyS
                 Preview ↗
               </a>
             )}
+            {/* S6.1: link to response summary */}
+            <a
+              href={`/surveys/${surveyId}/results`}
+              className="text-sm text-gray-600 hover:text-gray-800 font-medium"
+            >
+              Results
+            </a>
             {/* S1.8: Publish / Republish button (SC1.8.1, SC1.8.3) */}
             <button
               onClick={handlePublish}
@@ -233,14 +279,25 @@ export function SurveyBuilder({ surveyId, initialQuestions, surveyTitle, surveyS
               {questions
                 .slice()
                 .sort((a, b) => a.order - b.order)
-                .map((q) => (
-                  <QuestionBuilderItem
+                .map((q, idx) => (
+                  // S1.4: draggable wrapper — SC1.4.1, SC1.4.2
+                  <div
                     key={q.id}
-                    question={q}
-                    onUpdate={(data) => handleUpdateQuestion(q.id, data)}
-                    onDelete={() => handleDeleteQuestion(q.id)}
-                    onDuplicate={() => handleDuplicateQuestion(q.id)}
-                  />
+                    draggable={questions.length > 1}
+                    onDragStart={() => handleDragStart(idx)}
+                    onDragOver={(e) => handleDragOver(e, idx)}
+                    onDrop={() => handleDrop(idx)}
+                    onDragEnd={handleDragEnd}
+                    className={`transition-opacity ${dragOverIdx === idx && dragSourceIdx.current !== idx ? 'opacity-50' : 'opacity-100'}`}
+                  >
+                    <QuestionBuilderItem
+                      question={q}
+                      onUpdate={(data) => handleUpdateQuestion(q.id, data)}
+                      onDelete={() => handleDeleteQuestion(q.id)}
+                      onDuplicate={() => handleDuplicateQuestion(q.id)}
+                      showDragHandle={questions.length > 1}
+                    />
+                  </div>
                 ))}
             </div>
 

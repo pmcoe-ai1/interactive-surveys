@@ -1,12 +1,17 @@
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 
-export async function createResponse(surveyId: string, browserFingerprint?: string) {
+export async function createResponse(
+  surveyId: string,
+  browserFingerprint?: string,
+  userId?: string | null
+) {
   return prisma.response.create({
     data: {
       surveyId,
       browserFingerprint: browserFingerprint ?? null,
       startedAt: new Date(),
+      userId: userId ?? null,
     },
   });
 }
@@ -21,6 +26,10 @@ export async function saveAnswer(
     dateValue?: Date | null;
   }
 ) {
+  // D2.4: verify response exists so we can return 404 vs 400
+  const response = await prisma.response.findUnique({ where: { id: responseId } });
+  if (!response) throw new Error('Response not found');
+
   return prisma.answer.create({
     data: {
       responseId,

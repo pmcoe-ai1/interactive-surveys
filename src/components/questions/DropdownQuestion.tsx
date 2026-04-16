@@ -13,6 +13,7 @@ interface DropdownQuestionProps {
   description?: string | null;
   options: Option[];
   required?: boolean;
+  searchable?: boolean;
   onAnswer: (value: string) => void;
 }
 
@@ -21,6 +22,7 @@ export function DropdownQuestion({
   description,
   options,
   required,
+  searchable = false,
   onAnswer,
 }: DropdownQuestionProps) {
   const [selected, setSelected] = useState('');
@@ -37,13 +39,12 @@ export function DropdownQuestion({
     o.text.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Focus search when dropdown opens
+  // D2.3: only focus search input when searchable is enabled
   useEffect(() => {
-    if (isOpen) {
-      // Short delay to allow dropdown to render
+    if (isOpen && searchable) {
       setTimeout(() => searchRef.current?.focus(), 10);
     }
-  }, [isOpen]);
+  }, [isOpen, searchable]);
 
   // Close on click outside
   useEffect(() => {
@@ -108,17 +109,19 @@ export function DropdownQuestion({
         {/* SC2.7.1: scrollable list of options */}
         {isOpen && (
           <div className="absolute z-50 w-full mt-1 bg-white border-2 border-indigo-300 rounded-xl shadow-lg overflow-hidden">
-            {/* SC2.7.2: search field filters options */}
-            <div className="p-2 border-b border-gray-100">
-              <input
-                ref={searchRef}
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search options..."
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+            {/* D2.3.2: search input only shown when searchable=true */}
+            {searchable && (
+              <div className="p-2 border-b border-gray-100">
+                <input
+                  ref={searchRef}
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search options..."
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            )}
             <div className="max-h-60 overflow-y-auto">
               {filteredOptions.length === 0 ? (
                 <p className="px-4 py-3 text-sm text-gray-400 text-center">No options match</p>
@@ -148,21 +151,21 @@ export function DropdownQuestion({
         {selected ? (
           <button
             onClick={submit}
-            className="px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+            className="px-6 py-3 min-h-[44px] bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
           >
             OK ✓
           </button>
         ) : !required ? (
           <button
             onClick={submit}
-            className="px-6 py-2.5 text-gray-400 hover:text-gray-600 transition-colors text-sm"
+            className="px-6 py-3 min-h-[44px] text-gray-400 hover:text-gray-600 transition-colors text-sm"
           >
             Skip →
           </button>
         ) : (
           <button
             disabled
-            className="px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 min-h-[44px] bg-indigo-600 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             OK ✓
           </button>

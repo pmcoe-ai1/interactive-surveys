@@ -5,10 +5,10 @@
 
 header:
   domain: Interactive Surveys
-  date: "2026-04-15"
+  date: "2026-04-16"
   author: Alan Kwon
-  version: "0.2.0"
-  status: sprint-1-filled
+  version: "0.3.0"
+  status: sprint-3-filled
   deployment: railway.com
 
 features:
@@ -974,6 +974,289 @@ scenarios:
     coverageType: happy
     expectedResult: true
 
+  # Sprint 3 — D2.1: Fix authorization bypass in question update/delete
+
+  - id: SCD2.1.1
+    intentRef: null
+    storyRef: D2.1
+    given: "question Q belongs to survey A"
+    when: "I send PATCH /api/surveys/B/questions/Q where survey B ≠ survey A"
+    then: "the API returns 404"
+    coverageType: failure
+    expectedResult: false
+
+  - id: SCD2.1.2
+    intentRef: null
+    storyRef: D2.1
+    given: "question Q belongs to survey A"
+    when: "I send DELETE /api/surveys/B/questions/Q where survey B ≠ survey A"
+    then: "the API returns 404"
+    coverageType: failure
+    expectedResult: false
+
+  - id: SCD2.1.3
+    intentRef: null
+    storyRef: D2.1
+    given: "question Q belongs to survey A"
+    when: "I send PATCH /api/surveys/A/questions/Q as a different authenticated user"
+    then: "the API returns 404"
+    coverageType: failure
+    expectedResult: false
+
+  # Sprint 3 — D2.2: Fix double-advance race condition in RatingQuestion
+
+  - id: SCD2.2.1
+    intentRef: I2.5
+    storyRef: D2.2
+    given: "I am on a rating question"
+    when: "I click a star and then click OK within 200ms"
+    then: "the survey advances exactly once"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SCD2.2.2
+    intentRef: I2.5
+    storyRef: D2.2
+    given: "I click OK on a rating question and the advance is in progress"
+    when: "I attempt to click OK again"
+    then: "the OK button is disabled until the transition completes"
+    coverageType: edge
+    expectedResult: true
+
+  # Sprint 3 — D2.3: Fix DropdownQuestion ignoring searchable flag
+
+  - id: SCD2.3.1
+    intentRef: I2.7
+    storyRef: D2.3
+    given: "a dropdown question with searchable=false"
+    when: "a respondent opens the dropdown"
+    then: "no search input is shown"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SCD2.3.2
+    intentRef: I2.7
+    storyRef: D2.3
+    given: "a dropdown question with searchable=true"
+    when: "a respondent opens the dropdown"
+    then: "a search input is shown and filters options by typed text"
+    coverageType: happy
+    expectedResult: true
+
+  # Sprint 3 — D2.4: Fix wrong HTTP status code for missing response
+
+  - id: SCD2.4.1
+    intentRef: I5.1
+    storyRef: D2.4
+    given: "a non-existent response ID"
+    when: "I POST to /api/s/[slug]/responses/[rid]/answers"
+    then: "the API returns 404"
+    coverageType: failure
+    expectedResult: false
+
+  - id: SCD2.4.2
+    intentRef: I5.1
+    storyRef: D2.4
+    given: "a non-existent response ID"
+    when: "I POST to /api/s/[slug]/responses/[rid]/complete"
+    then: "the API returns 404"
+    coverageType: failure
+    expectedResult: false
+
+  # Sprint 3 — D2.5: Add error handling to responses route
+
+  - id: SCD2.5.1
+    intentRef: I5.1
+    storyRef: D2.5
+    given: "a database error occurs during response creation"
+    when: "I POST to /api/s/[slug]/responses"
+    then: "the API returns 500 with a JSON error body"
+    coverageType: failure
+    expectedResult: false
+
+  - id: SCD2.5.2
+    intentRef: I5.1
+    storyRef: D2.5
+    given: "valid input and a healthy database"
+    when: "I POST to /api/s/[slug]/responses"
+    then: "the API returns 201 with the new response ID"
+    coverageType: happy
+    expectedResult: true
+
+  # Sprint 3 — D2.6: Fix pluralization in MultipleChoiceQuestion error messages
+
+  - id: SCD2.6.1
+    intentRef: I2.4
+    storyRef: D2.6
+    given: "a multiple choice question with maxSelections=1"
+    when: "a respondent tries to select a second option"
+    then: "the error message reads 'Select at most 1 option' (singular)"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SCD2.6.2
+    intentRef: I2.4
+    storyRef: D2.6
+    given: "a multiple choice question with minSelections=2"
+    when: "a respondent tries to advance with only 1 selection"
+    then: "the error message reads 'Select at least 2 options'"
+    coverageType: failure
+    expectedResult: false
+
+  - id: SCD2.6.3
+    intentRef: I2.4
+    storyRef: D2.6
+    given: "a multiple choice question with maxSelections=3"
+    when: "a respondent tries to select a 4th option"
+    then: "the error message reads 'Select at most 3 options'"
+    coverageType: failure
+    expectedResult: false
+
+  # Sprint 3 — S1.4: Reorder questions via drag-and-drop
+
+  - id: SC1.4.1
+    intentRef: I1.4
+    storyRef: S1.4
+    given: "a survey with 3 questions in order A, B, C"
+    when: "I drag question C above question A"
+    then: "the order becomes C, A, B"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC1.4.2
+    intentRef: I1.4
+    storyRef: S1.4
+    given: "I have reordered questions"
+    when: "I reload the page"
+    then: "the new order is preserved"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SC1.4.3
+    intentRef: I1.4
+    storyRef: S1.4
+    given: "a survey with only 1 question"
+    when: "I view the builder"
+    then: "no drag handle is shown (nothing to reorder)"
+    coverageType: edge
+    expectedResult: true
+
+  # Sprint 3 — S3.3: Mobile-first responsive layout
+
+  - id: SC3.3.1
+    intentRef: I3.3
+    storyRef: S3.3
+    given: "a viewport of 375px wide"
+    when: "I view a survey question"
+    then: "all text and buttons are visible without horizontal scrolling"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC3.3.2
+    intentRef: I3.3
+    storyRef: S3.3
+    given: "a viewport of 375px wide"
+    when: "I view the OK / Skip button"
+    then: "it has a minimum tap target of 44px height"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC3.3.3
+    intentRef: I3.3
+    storyRef: S3.3
+    given: "a viewport of 375px wide"
+    when: "I view the survey builder"
+    then: "the question list and editor stack vertically and are usable"
+    coverageType: edge
+    expectedResult: true
+
+  # Sprint 3 — S5.2: Partial response capture
+
+  - id: SC5.2.1
+    intentRef: I5.2
+    storyRef: S5.2
+    given: "I answer questions 1 and 2 of a 5-question survey"
+    when: "I close the browser without finishing"
+    then: "a partial response record exists in the database with status=partial"
+    coverageType: edge
+    expectedResult: true
+
+  - id: SC5.2.2
+    intentRef: I5.2
+    storyRef: S5.2
+    given: "a partial response exists"
+    when: "the creator views their response list"
+    then: "partial responses are counted separately from complete responses"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC5.2.3
+    intentRef: I5.2
+    storyRef: S5.2
+    given: "I answer question 1"
+    when: "the answer is submitted"
+    then: "the answer is saved immediately (not only on final submit)"
+    coverageType: happy
+    expectedResult: true
+
+  # Sprint 3 — S5.3: Anonymous and identified responses
+
+  - id: SC5.3.1
+    intentRef: I5.3
+    storyRef: S5.3
+    given: "a logged-in user takes a survey"
+    when: "they submit a response"
+    then: "the response is linked to their user ID"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC5.3.2
+    intentRef: I5.3
+    storyRef: S5.3
+    given: "an anonymous visitor takes a survey"
+    when: "they submit a response"
+    then: "the response is recorded with a null user ID"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC5.3.3
+    intentRef: I5.3
+    storyRef: S5.3
+    given: "two users (one identified, one anonymous) submit the same survey"
+    when: "the creator views responses"
+    then: "each response is listed separately with its respondent identity or 'Anonymous'"
+    coverageType: happy
+    expectedResult: true
+
+  # Sprint 3 — S6.1: Response summary overview
+
+  - id: SC6.1.1
+    intentRef: I6.1
+    storyRef: S6.1
+    given: "a survey with 10 complete and 3 partial responses"
+    when: "I visit the survey results page"
+    then: "I see '10 responses' and '77% completion rate'"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC6.1.2
+    intentRef: I6.1
+    storyRef: S6.1
+    given: "a survey with responses"
+    when: "I view the results page"
+    then: "I see a list of responses with timestamp and complete/partial status"
+    coverageType: happy
+    expectedResult: true
+
+  - id: SC6.1.3
+    intentRef: I6.1
+    storyRef: S6.1
+    given: "a survey with no responses"
+    when: "I visit the results page"
+    then: "I see 'No responses yet' and a link to share the survey"
+    coverageType: edge
+    expectedResult: true
+
 glossary:
   - id: G1
     term: Survey
@@ -1083,6 +1366,20 @@ glossary:
       A client-supplied identifier (sent via the x-browser-fingerprint header or
       request body) used for duplicate-response prevention when anonymousResponses
       is enabled.
+
+  - id: G17
+    term: Completion Rate
+    definition: >
+      The percentage of started Response sessions that reached the "complete" status.
+      Calculated as: (complete responses / total responses) × 100. Used in the
+      S6.1 response summary overview (e.g. 10 complete out of 13 total = 77%).
+
+  - id: G18
+    term: Respondent
+    definition: >
+      Any visitor — authenticated or anonymous — who opens a published Survey and
+      begins filling it out. A Respondent is associated with a Response record; if
+      they are logged in their userId is captured, otherwise it remains null.
 
 entities:
   # Copied from entities.yaml — 8 entities, 78 fields, 17 relationships
@@ -1233,18 +1530,26 @@ errorCodes:
       - "POST /api/s/:slug/responses/:rid/answers"
 
   - code: RESPONSE_NOT_FOUND
-    httpStatus: 400
+    httpStatus: 404
     body: { error: "Response not found" }
-    description: "completeResponse called with an unknown responseId"
+    description: "answers or complete called with an unknown responseId (D2.4: corrected from 400 to 404)"
     routes:
+      - "POST /api/s/:slug/responses/:rid/answers"
       - "POST /api/s/:slug/responses/:rid/complete"
 
   - code: RESPONSE_COMPLETE_FAILED
     httpStatus: 400
     body: { error: "Failed to complete response" }
-    description: "Generic failure marking a response complete"
+    description: "Generic failure marking a response complete (non-404 errors)"
     routes:
       - "POST /api/s/:slug/responses/:rid/complete"
+
+  - code: RESPONSE_CREATE_FAILED
+    httpStatus: 500
+    body: { error: "Internal server error" }
+    description: "Unexpected server error during response creation (D2.5: database or runtime failure)"
+    routes:
+      - "POST /api/s/:slug/responses"
 
 # ─── Domain Events (filled Sprint 1) ──────────────────────────────────────────
 
@@ -1335,24 +1640,25 @@ domainEvents:
     payload:
       surveyId: string
       orderedIds: "string[]"
-    storyRefs: [S1.2]
+    storyRefs: [S1.2, S1.4]
 
   # Response lifecycle
   - event: response.started
-    trigger: "POST /api/s/:slug/responses returns 201; Response row inserted with status=partial"
+    trigger: "POST /api/s/:slug/responses returns 201; Response row inserted with status=partial, userId captured if authenticated (S5.3)"
     payload:
       responseId: string
       surveyId: string
+      userId: "string | null"
       browserFingerprint: "string | null"
-    storyRefs: [S2.1, S2.3, S2.6, S2.9]
+    storyRefs: [S2.1, S2.3, S2.6, S2.9, S5.2, S5.3]
 
   - event: response.answer_saved
-    trigger: "POST /api/s/:slug/responses/:rid/answers returns 201; Answer row inserted"
+    trigger: "POST /api/s/:slug/responses/:rid/answers returns 201; Answer row inserted (S5.2: saved immediately per question)"
     payload:
       answerId: string
       responseId: string
       questionId: string
-    storyRefs: [S2.1, S2.3, S2.6, S2.9]
+    storyRefs: [S2.1, S2.3, S2.6, S2.9, S5.2]
 
   - event: response.completed
     trigger: "POST /api/s/:slug/responses/:rid/complete; Response status set to complete and survey responseCount incremented"
@@ -1360,7 +1666,7 @@ domainEvents:
       responseId: string
       surveyId: string
       completionTimeSeconds: number
-    storyRefs: [S2.1, S2.3, S2.6, S2.9]
+    storyRefs: [S2.1, S2.3, S2.6, S2.9, S5.2, S5.3]
 
 # ─── Sections still unfilled ───────────────────────────────────────────────────
 

@@ -52,9 +52,9 @@ export function MultipleChoiceQuestion({
   }, [selected, sortedOptions]);
 
   function toggleOption(text: string) {
-    // SC2.4.2: show error when trying to exceed max selections
+    // D2.6: grammatically correct pluralization for max/min errors
     if (!selected.has(text) && maxSelections && selected.size >= maxSelections) {
-      setError(`Select at most ${maxSelections}`);
+      setError(`Select at most ${maxSelections} option${maxSelections === 1 ? '' : 's'}`);
       return;
     }
     setSelected((prev) => {
@@ -78,7 +78,7 @@ export function MultipleChoiceQuestion({
       return;
     }
     if (minSelections && values.length < minSelections) {
-      setError(`Please select at least ${minSelections} options`);
+      setError(`Select at least ${minSelections} option${minSelections === 1 ? '' : 's'}`);
       return;
     }
     onAnswer(values);
@@ -147,7 +147,7 @@ export function MultipleChoiceQuestion({
 
       <button
         onClick={submit}
-        className="px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+        className="px-6 py-3 min-h-[44px] bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
       >
         OK ✓
       </button>

@@ -121,6 +121,28 @@ export async function publishSurvey(surveyId: string, userId: string) {
   });
 }
 
+export async function getSurveyResponses(surveyId: string, userId: string) {
+  // Verify ownership
+  const survey = await prisma.survey.findFirst({ where: { id: surveyId, userId } });
+  if (!survey) throw new Error('Survey not found');
+
+  const responses = await prisma.response.findMany({
+    where: { surveyId },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+      _count: { select: { answers: true } },
+    },
+  });
+
+  const total = responses.length;
+  const complete = responses.filter((r) => r.status === 'complete').length;
+  const partial = total - complete;
+  const completionRate = total > 0 ? Math.round((complete / total) * 100) : 0;
+
+  return { survey, responses, total, complete, partial, completionRate };
+}
+
 export async function deleteSurvey(surveyId: string, userId: string) {
   const survey = await prisma.survey.findFirst({ where: { id: surveyId, userId } });
   if (!survey) throw new Error('Survey not found');

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { createResponse } from '@/services/response.service';
 
@@ -19,6 +21,15 @@ export async function POST(req: NextRequest, { params }: Params) {
   const body = await req.json().catch(() => ({}));
   const fingerprint = req.headers.get('x-browser-fingerprint') ?? body.fingerprint ?? null;
 
-  const response = await createResponse(survey.id, fingerprint ?? undefined);
-  return NextResponse.json(response, { status: 201 });
+  // S5.3: capture the authenticated user if present (anonymous → null)
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id ?? null;
+
+  // D2.5: wrap in try/catch to return 500 on server errors instead of crashing
+  try {
+    const response = await createResponse(survey.id, fingerprint ?? undefined, userId);
+    return NextResponse.json(response, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }

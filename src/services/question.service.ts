@@ -103,8 +103,12 @@ export async function updateQuestion(
   userId: string,
   input: UpdateQuestionInput
 ) {
+  // Verify survey ownership AND that the question belongs to this survey (D2.1.1, D2.1.3)
   const survey = await prisma.survey.findFirst({ where: { id: surveyId, userId } });
   if (!survey) throw new Error('Survey not found');
+
+  const existing = await prisma.question.findFirst({ where: { id: questionId, surveyId } });
+  if (!existing) throw new Error('Survey not found');
 
   const { options, ...rest } = input;
 
@@ -129,8 +133,12 @@ export async function updateQuestion(
 }
 
 export async function deleteQuestion(surveyId: string, questionId: string, userId: string) {
+  // Verify survey ownership AND that the question belongs to this survey (D2.1.1, D2.1.2)
   const survey = await prisma.survey.findFirst({ where: { id: surveyId, userId } });
   if (!survey) throw new Error('Survey not found');
+
+  const existing = await prisma.question.findFirst({ where: { id: questionId, surveyId } });
+  if (!existing) throw new Error('Survey not found');
 
   await prisma.question.delete({ where: { id: questionId } });
 

@@ -43,6 +43,7 @@ export default async function PublicSurveyPage({ params }: Props) {
         maxSelections: q.maxSelections,
         ratingStyle: q.ratingStyle,
         ratingMax: q.ratingMax,
+        searchable: q.searchable,
         allowOther: q.allowOther,
         buttonLabel: q.buttonLabel,
         ctaUrl: q.ctaUrl,

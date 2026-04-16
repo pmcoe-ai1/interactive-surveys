@@ -23,6 +23,8 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json(answer, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to save answer';
-    return NextResponse.json({ error: message }, { status: 400 });
+    // D2.4: return 404 when the response record does not exist
+    const status = message === 'Response not found' ? 404 : 400;
+    return NextResponse.json({ error: message }, { status });
   }
 }

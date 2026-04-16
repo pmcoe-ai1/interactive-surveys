@@ -33,6 +33,7 @@ interface SurveyQuestion {
   maxSelections?: number | null;
   ratingStyle?: string | null;
   ratingMax?: number | null;
+  searchable?: boolean;
   allowOther: boolean;
   buttonLabel?: string | null;
   ctaUrl?: string | null;
@@ -362,6 +363,7 @@ export function OqaatSurvey({ surveyId, surveySlug, questions, thankYouMessage }
             description={q.description}
             options={q.options}
             required={q.required}
+            searchable={q.searchable}
             onAnswer={(val) => advance(q.id, val)}
           />
         );
@@ -397,8 +399,8 @@ export function OqaatSurvey({ surveyId, surveySlug, questions, thankYouMessage }
         </div>
       )}
 
-      {/* SC3.1.1: one question centered on screen */}
-      <div className="flex-1 flex items-center justify-center p-8">
+      {/* SC3.1.1: one question centered on screen; SC3.3.1: responsive padding */}
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
         {/* SC3.5.3: motion-reduce:transition-none for prefers-reduced-motion */}
         <div
           className={`w-full max-w-xl transition-all duration-200 ease-out motion-reduce:transition-none ${transitionClasses[transition]}`}
@@ -407,9 +409,9 @@ export function OqaatSurvey({ surveyId, surveySlug, questions, thankYouMessage }
         </div>
       </div>
 
-      {/* Footer: question counter + back button */}
+      {/* Footer: question counter + back button; SC3.3.1: reduce padding on mobile */}
       {!isWelcome && (
-        <div className="py-4 px-8 flex items-center justify-between text-sm text-gray-400 border-t border-gray-100">
+        <div className="py-4 px-4 sm:px-8 flex items-center justify-between text-sm text-gray-400 border-t border-gray-100">
           <div className="flex items-center gap-4">
             <span>
               {currentIndex + 1} / {sortedQuestions.length}

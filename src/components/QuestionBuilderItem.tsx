@@ -45,6 +45,8 @@ interface QuestionBuilderItemProps {
   onUpdate: (data: QuestionUpdateInput) => void;
   onDelete: () => void;
   onDuplicate: () => void;
+  /** S1.4: show drag handle only when there are multiple questions (SC1.4.3) */
+  showDragHandle?: boolean;
 }
 
 const TYPE_LABELS: Record<QuestionType, string> = {
@@ -60,7 +62,7 @@ const TYPE_LABELS: Record<QuestionType, string> = {
   thank_you_screen: 'Thank You Screen',
 };
 
-export function QuestionBuilderItem({ question, onUpdate, onDelete, onDuplicate }: QuestionBuilderItemProps) {
+export function QuestionBuilderItem({ question, onUpdate, onDelete, onDuplicate, showDragHandle = false }: QuestionBuilderItemProps) {
   const [expanded, setExpanded] = useState(true);
   const [localOptions, setLocalOptions] = useState(
     question.options.length > 0
@@ -122,6 +124,16 @@ export function QuestionBuilderItem({ question, onUpdate, onDelete, onDuplicate 
         className="flex items-center gap-3 p-4 cursor-pointer"
         onClick={() => setExpanded(!expanded)}
       >
+        {/* S1.4: drag handle — only visible when multiple questions exist (SC1.4.3) */}
+        {showDragHandle && (
+          <span
+            className="text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing select-none text-lg leading-none"
+            title="Drag to reorder"
+            onClick={(e) => e.stopPropagation()}
+          >
+            ⠿
+          </span>
+        )}
         <span className="text-gray-400 text-sm font-medium w-6 text-center">{question.order + 1}</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">

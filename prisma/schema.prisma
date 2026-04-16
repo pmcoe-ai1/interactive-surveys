@@ -94,6 +94,7 @@ model User {
   surveys              Survey[]
   accounts             Account[]
   sessions             Session[]
+  responses            Response[]
 
   @@map("users")
 }
@@ -255,11 +256,15 @@ model Response {
   surveyId             String
   survey               Survey         @relation(fields: [surveyId], references: [id], onDelete: Cascade)
 
+  userId               String?
+  user                 User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+
   answers              Answer[]
 
   @@index([surveyId])
   @@index([surveyId, browserFingerprint])
   @@index([status])
+  @@index([userId])
   @@map("responses")
 }
 
