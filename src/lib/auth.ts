@@ -67,6 +67,7 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'database',
   },
+  allowDangerousEmailAccountLinking: true,
   secret: process.env.NEXTAUTH_SECRET || 'dev-secret-change-in-production',
 };
 
