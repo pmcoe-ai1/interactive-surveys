@@ -23,10 +23,12 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      allowDangerousEmailAccountLinking: true,
     }),
     GitHubProvider({
       clientId: process.env.GITHUB_CLIENT_ID || '',
       clientSecret: process.env.GITHUB_CLIENT_SECRET || '',
+      allowDangerousEmailAccountLinking: true,
     }),
   ],
   pages: {
@@ -67,7 +69,6 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'database',
   },
-  allowDangerousEmailAccountLinking: true,
   secret: process.env.NEXTAUTH_SECRET || 'dev-secret-change-in-production',
 };
 
