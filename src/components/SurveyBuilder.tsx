@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { QuestionType } from '@prisma/client';
+import { QuestionType, SurveyStatus } from '@prisma/client';
 import { QuestionTypePicker } from './QuestionTypePicker';
 import { QuestionBuilderItem, QuestionData, QuestionUpdateInput } from './QuestionBuilderItem';
 
@@ -10,13 +10,17 @@ interface SurveyBuilderProps {
   initialQuestions: QuestionData[];
   surveyTitle: string;
   surveySlug: string | null;
+  initialStatus: SurveyStatus;
 }
 
-export function SurveyBuilder({ surveyId, initialQuestions, surveyTitle, surveySlug }: SurveyBuilderProps) {
+export function SurveyBuilder({ surveyId, initialQuestions, surveyTitle, surveySlug, initialStatus }: SurveyBuilderProps) {
   const [questions, setQuestions] = useState<QuestionData[]>(initialQuestions);
   const [showPicker, setShowPicker] = useState(false);
   const [warning, setWarning] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<SurveyStatus>(initialStatus);
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const [publishSuccess, setPublishSuccess] = useState(false);
 
   const handleAddQuestion = useCallback(async (type: QuestionType) => {
     setShowPicker(false);
@@ -99,6 +103,42 @@ export function SurveyBuilder({ surveyId, initialQuestions, surveyTitle, surveyS
     });
   }, [surveyId]);
 
+  // S1.6: Duplicate question (SC1.6.1, SC1.6.2, SC1.6.3)
+  const handleDuplicateQuestion = useCallback(async (questionId: string) => {
+    const res = await fetch(`/api/surveys/${surveyId}/questions/${questionId}/duplicate`, {
+      method: 'POST',
+    });
+
+    if (!res.ok) return;
+
+    const copy = await res.json();
+    setQuestions((prev) => [...prev, copy]);
+  }, [surveyId]);
+
+  // S1.8: Publish survey (SC1.8.1, SC1.8.2, SC1.8.3)
+  const handlePublish = useCallback(async () => {
+    setPublishError(null);
+    setSaving(true);
+
+    const res = await fetch(`/api/surveys/${surveyId}/publish`, {
+      method: 'POST',
+    });
+
+    setSaving(false);
+
+    if (!res.ok) {
+      const data = await res.json();
+      setPublishError(data.error || 'Failed to publish');
+      return;
+    }
+
+    setStatus('live');
+    setPublishSuccess(true);
+    setTimeout(() => setPublishSuccess(false), 5000);
+  }, [surveyId]);
+
+  const isLive = status === 'live';
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -119,6 +159,18 @@ export function SurveyBuilder({ surveyId, initialQuestions, surveyTitle, surveyS
                 Preview ↗
               </a>
             )}
+            {/* S1.8: Publish / Republish button (SC1.8.1, SC1.8.3) */}
+            <button
+              onClick={handlePublish}
+              disabled={saving}
+              className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 ${
+                isLive
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
+              }`}
+            >
+              {saving ? '...' : isLive ? 'Republish' : 'Publish'}
+            </button>
             <a
               href="/dashboard"
               className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -128,6 +180,30 @@ export function SurveyBuilder({ surveyId, initialQuestions, surveyTitle, surveyS
           </div>
         </div>
       </header>
+
+      {/* Publish success banner with shareable link (SC1.8.1) */}
+      {publishSuccess && surveySlug && (
+        <div className="bg-green-50 border-b border-green-200 px-4 py-3">
+          <p className="text-green-800 text-sm text-center">
+            Survey is live! Share it:{' '}
+            <a
+              href={`/s/${surveySlug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold underline"
+            >
+              {typeof window !== 'undefined' ? `${window.location.origin}/s/${surveySlug}` : `/s/${surveySlug}`}
+            </a>
+          </p>
+        </div>
+      )}
+
+      {/* Publish error banner (SC1.8.2) */}
+      {publishError && (
+        <div className="bg-red-50 border-b border-red-200 px-4 py-3">
+          <p className="text-red-800 text-sm text-center">{publishError}</p>
+        </div>
+      )}
 
       {/* Warning banner */}
       {warning && (
@@ -142,6 +218,7 @@ export function SurveyBuilder({ surveyId, initialQuestions, surveyTitle, surveyS
           <div className="text-center py-16">
             <div className="text-4xl mb-4">📋</div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">No questions yet</h2>
+            {/* SC1.5.2: "Add your first question" empty state */}
             <p className="text-gray-500 mb-6">Add your first question to get started.</p>
             <button
               onClick={() => setShowPicker(true)}
@@ -162,6 +239,7 @@ export function SurveyBuilder({ surveyId, initialQuestions, surveyTitle, surveyS
                     question={q}
                     onUpdate={(data) => handleUpdateQuestion(q.id, data)}
                     onDelete={() => handleDeleteQuestion(q.id)}
+                    onDuplicate={() => handleDuplicateQuestion(q.id)}
                   />
                 ))}
             </div>

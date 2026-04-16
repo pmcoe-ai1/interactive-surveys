@@ -52,12 +52,16 @@ export function MultipleChoiceQuestion({
   }, [selected, sortedOptions]);
 
   function toggleOption(text: string) {
+    // SC2.4.2: show error when trying to exceed max selections
+    if (!selected.has(text) && maxSelections && selected.size >= maxSelections) {
+      setError(`Select at most ${maxSelections}`);
+      return;
+    }
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(text)) {
         next.delete(text);
       } else {
-        if (maxSelections && next.size >= maxSelections) return prev;
         next.add(text);
       }
       return next;

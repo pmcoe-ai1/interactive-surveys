@@ -27,6 +27,18 @@ export function LongTextQuestion({
     textareaRef.current?.focus();
   }, []);
 
+  // SC2.2.1: auto-expand the textarea to fit content
+  function autoResize(el: HTMLTextAreaElement) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    setValue(e.target.value);
+    setError(null);
+    autoResize(e.target);
+  }
+
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       submit();
@@ -38,8 +50,16 @@ export function LongTextQuestion({
       setError('This field is required');
       return;
     }
+    // SC2.2.2: show error if over limit (don't block; the counter shows it)
+    if (charLimit && value.length > charLimit) {
+      setError(`Please shorten your answer to ${charLimit} characters or fewer`);
+      return;
+    }
+    // SC2.2.3: no limit → any length accepted
     onAnswer(value.trim());
   }
+
+  const isOverLimit = charLimit ? value.length > charLimit : false;
 
   return (
     <div className="w-full max-w-xl">
@@ -49,20 +69,19 @@ export function LongTextQuestion({
       <textarea
         ref={textareaRef}
         value={value}
-        onChange={(e) => {
-          if (charLimit && e.target.value.length > charLimit) return;
-          setValue(e.target.value);
-          setError(null);
-        }}
+        onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder={placeholder ?? 'Type your answer here...'}
         rows={4}
-        className="w-full px-0 py-2 text-lg border-b-2 border-gray-300 focus:border-indigo-500 focus:outline-none bg-transparent transition-colors resize-none"
+        style={{ resize: 'none', overflow: 'hidden' }}
+        className="w-full px-0 py-2 text-lg border-b-2 border-gray-300 focus:border-indigo-500 focus:outline-none bg-transparent transition-colors"
       />
 
+      {/* SC2.2.2: character counter — shows exceeded state */}
       {charLimit && (
-        <p className="text-xs text-gray-400 text-right mt-1">
+        <p className={`text-xs text-right mt-1 transition-colors ${isOverLimit ? 'text-red-500 font-semibold' : 'text-gray-400'}`}>
           {value.length}/{charLimit}
+          {isOverLimit && ' — limit exceeded'}
         </p>
       )}
 

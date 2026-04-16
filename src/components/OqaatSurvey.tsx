@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { QuestionType } from '@prisma/client';
 import { ShortTextQuestion } from './questions/ShortTextQuestion';
 import { LongTextQuestion } from './questions/LongTextQuestion';
@@ -47,19 +47,32 @@ interface OqaatSurveyProps {
 }
 
 type TransitionState = 'visible' | 'exit' | 'enter';
+type Direction = 'forward' | 'backward';
 
 export function OqaatSurvey({ surveyId, surveySlug, questions, thankYouMessage }: OqaatSurveyProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[] | number>>({});
   const [responseId, setResponseId] = useState<string | null>(null);
   const [transition, setTransition] = useState<TransitionState>('visible');
+  const [direction, setDirection] = useState<Direction>('forward');
   const [completed, setCompleted] = useState(false);
+  // SC3.5.3: detect prefers-reduced-motion
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReducedMotion(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   // Sort questions by order
   const sortedQuestions = [...questions].sort((a, b) => a.order - b.order);
   const currentQuestion = sortedQuestions[currentIndex];
 
-  const progressPercent = Math.round((currentIndex / Math.max(sortedQuestions.length, 1)) * 100);
+  // SC3.1.3: question 5 of 10 shows 50% — use (currentIndex+1)/total
+  const progressPercent = Math.round(((currentIndex + 1) / Math.max(sortedQuestions.length, 1)) * 100);
 
   async function ensureResponse() {
     if (responseId) return responseId;
@@ -106,15 +119,17 @@ export function OqaatSurvey({ surveyId, surveySlug, questions, thankYouMessage }
     });
   }
 
+  // SC3.5.1: forward transition — current slides up, next slides in from below (200-300ms)
   const advance = useCallback(
     async (questionId: string, value: string | string[] | number) => {
-      // Save the answer
       setAnswers((prev) => ({ ...prev, [questionId]: value }));
       await saveAnswer(questionId, value);
 
-      // Transition out
-      setTransition('exit');
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      setDirection('forward');
+      if (!reducedMotion) {
+        setTransition('exit');
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
 
       const nextIndex = currentIndex + 1;
 
@@ -128,19 +143,24 @@ export function OqaatSurvey({ surveyId, surveySlug, questions, thankYouMessage }
           setCompleted(true);
         } else {
           setCurrentIndex(nextIndex);
-          setTransition('enter');
-          await new Promise((resolve) => setTimeout(resolve, 50));
-          setTransition('visible');
+          if (!reducedMotion) {
+            setTransition('enter');
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            setTransition('visible');
+          }
         }
       }
     },
-    [currentIndex, sortedQuestions, responseId, surveySlug]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [currentIndex, sortedQuestions, responseId, surveySlug, reducedMotion]
   );
 
   const handleStart = useCallback(async () => {
-    // Welcome screen — just advance without saving an answer
-    setTransition('exit');
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    setDirection('forward');
+    if (!reducedMotion) {
+      setTransition('exit');
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
 
     const nextIndex = currentIndex + 1;
     if (nextIndex >= sortedQuestions.length) {
@@ -152,15 +172,54 @@ export function OqaatSurvey({ surveyId, surveySlug, questions, thankYouMessage }
         setCompleted(true);
       } else {
         setCurrentIndex(nextIndex);
-        setTransition('enter');
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        setTransition('visible');
+        if (!reducedMotion) {
+          setTransition('enter');
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          setTransition('visible');
+        }
       }
     }
-  }, [currentIndex, sortedQuestions, responseId]);
+  }, [currentIndex, sortedQuestions, responseId, reducedMotion]);
+
+  // SC3.2.3 / SC3.5.2: go back — direction reverses, slides down instead of up
+  const navigateBack = useCallback(async () => {
+    if (currentIndex === 0) return;
+
+    setDirection('backward');
+    if (!reducedMotion) {
+      setTransition('exit');
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+
+    setCurrentIndex(currentIndex - 1);
+    if (!reducedMotion) {
+      setTransition('enter');
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      setTransition('visible');
+    }
+    setDirection('forward');
+  }, [currentIndex, reducedMotion]);
+
+  // SC3.2.3: Shift+Tab or Up arrow → go back
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const inInput =
+        document.activeElement instanceof HTMLInputElement ||
+        document.activeElement instanceof HTMLTextAreaElement;
+
+      if (
+        !inInput &&
+        (e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey))
+      ) {
+        e.preventDefault();
+        navigateBack();
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navigateBack]);
 
   if (completed) {
-    // Check if last question is a thank_you_screen
     const lastQ = sortedQuestions[sortedQuestions.length - 1];
     if (lastQ?.type === 'thank_you_screen') {
       return (
@@ -190,11 +249,18 @@ export function OqaatSurvey({ surveyId, surveySlug, questions, thankYouMessage }
 
   if (!currentQuestion) return null;
 
-  const transitionClasses: Record<TransitionState, string> = {
+  // SC3.5.1 / SC3.5.2: direction-aware transition classes
+  const forwardClasses: Record<TransitionState, string> = {
     visible: 'opacity-100 translate-y-0',
-    exit: 'opacity-0 -translate-y-4',
-    enter: 'opacity-0 translate-y-4',
+    exit: 'opacity-0 -translate-y-4',    // slide up out
+    enter: 'opacity-0 translate-y-4',    // slide in from below
   };
+  const backwardClasses: Record<TransitionState, string> = {
+    visible: 'opacity-100 translate-y-0',
+    exit: 'opacity-0 translate-y-4',     // slide down out
+    enter: 'opacity-0 -translate-y-4',   // slide in from above
+  };
+  const transitionClasses = direction === 'backward' ? backwardClasses : forwardClasses;
 
   function renderQuestion(q: SurveyQuestion) {
     switch (q.type) {
@@ -321,7 +387,7 @@ export function OqaatSurvey({ surveyId, surveySlug, questions, thankYouMessage }
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Progress bar (hidden for welcome screen) */}
+      {/* SC3.1.1: progress bar (hidden for welcome screen) */}
       {!isWelcome && (
         <div className="w-full h-1 bg-gray-100">
           <div
@@ -331,21 +397,34 @@ export function OqaatSurvey({ surveyId, surveySlug, questions, thankYouMessage }
         </div>
       )}
 
-      {/* Question area */}
+      {/* SC3.1.1: one question centered on screen */}
       <div className="flex-1 flex items-center justify-center p-8">
+        {/* SC3.5.3: motion-reduce:transition-none for prefers-reduced-motion */}
         <div
-          className={`w-full max-w-xl transition-all duration-200 ease-out ${transitionClasses[transition]}`}
+          className={`w-full max-w-xl transition-all duration-200 ease-out motion-reduce:transition-none ${transitionClasses[transition]}`}
         >
           {renderQuestion(currentQuestion)}
         </div>
       </div>
 
-      {/* Footer with question counter */}
+      {/* Footer: question counter + back button */}
       {!isWelcome && (
         <div className="py-4 px-8 flex items-center justify-between text-sm text-gray-400 border-t border-gray-100">
-          <span>
-            {currentIndex + 1} / {sortedQuestions.length}
-          </span>
+          <div className="flex items-center gap-4">
+            <span>
+              {currentIndex + 1} / {sortedQuestions.length}
+            </span>
+            {/* SC3.2.3: visible back button */}
+            {currentIndex > 0 && (
+              <button
+                onClick={navigateBack}
+                className="text-gray-400 hover:text-gray-600 transition-colors text-xs"
+                title="Go back (Shift+Tab or ↑)"
+              >
+                ← Back
+              </button>
+            )}
+          </div>
           <span>Powered by Interactive Surveys</span>
         </div>
       )}

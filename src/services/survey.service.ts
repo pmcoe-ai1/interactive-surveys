@@ -104,6 +104,23 @@ export async function updateSurvey(
   });
 }
 
+export async function publishSurvey(surveyId: string, userId: string) {
+  const survey = await prisma.survey.findFirst({
+    where: { id: surveyId, userId },
+    include: { _count: { select: { questions: true } } },
+  });
+  if (!survey) throw new Error('Survey not found');
+
+  if (survey._count.questions === 0) {
+    throw new Error('Add at least one question before publishing');
+  }
+
+  return prisma.survey.update({
+    where: { id: surveyId },
+    data: { status: 'live' },
+  });
+}
+
 export async function deleteSurvey(surveyId: string, userId: string) {
   const survey = await prisma.survey.findFirst({ where: { id: surveyId, userId } });
   if (!survey) throw new Error('Survey not found');

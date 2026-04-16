@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { QuestionType, ValidationRule } from '@prisma/client';
+import { QuestionType, ValidationRule, RatingStyle } from '@prisma/client';
 
 export interface CreateQuestionInput {
   type: QuestionType;
@@ -11,7 +11,9 @@ export interface CreateQuestionInput {
   charLimit?: number;
   minSelections?: number;
   maxSelections?: number;
+  ratingStyle?: RatingStyle;
   ratingMax?: number;
+  searchable?: boolean;
   allowOther?: boolean;
   buttonLabel?: string;
   ctaUrl?: string;
@@ -54,7 +56,9 @@ export async function addQuestion(surveyId: string, userId: string, input: Creat
       charLimit: input.charLimit ?? null,
       minSelections: input.minSelections ?? null,
       maxSelections: input.maxSelections ?? null,
+      ratingStyle: input.ratingStyle ?? null,
       ratingMax: input.ratingMax ?? 5,
+      searchable: input.searchable ?? false,
       allowOther: input.allowOther ?? false,
       buttonLabel: input.buttonLabel ?? null,
       ctaUrl: input.ctaUrl ?? null,
@@ -143,6 +147,48 @@ export async function deleteQuestion(surveyId: string, questionId: string, userI
   );
 
   await prisma.survey.update({ where: { id: surveyId }, data: {} });
+}
+
+export async function duplicateQuestion(surveyId: string, questionId: string, userId: string) {
+  const survey = await prisma.survey.findFirst({ where: { id: surveyId, userId } });
+  if (!survey) throw new Error('Survey not found');
+
+  const source = await prisma.question.findFirst({
+    where: { id: questionId, surveyId },
+    include: { options: { orderBy: { order: 'asc' } } },
+  });
+  if (!source) throw new Error('Question not found');
+
+  const nextOrder = await getNextOrder(surveyId);
+
+  const copy = await prisma.question.create({
+    data: {
+      surveyId,
+      type: source.type,
+      title: `${source.title} (copy)`,
+      description: source.description,
+      required: source.required,
+      order: nextOrder,
+      placeholder: source.placeholder,
+      validation: source.validation,
+      charLimit: source.charLimit,
+      minSelections: source.minSelections,
+      maxSelections: source.maxSelections,
+      ratingStyle: source.ratingStyle,
+      ratingMax: source.ratingMax,
+      searchable: source.searchable,
+      allowOther: source.allowOther,
+      buttonLabel: source.buttonLabel,
+      ctaUrl: source.ctaUrl,
+      options: source.options.length > 0
+        ? { create: source.options.map((o) => ({ text: o.text, order: o.order })) }
+        : undefined,
+    },
+    include: { options: { orderBy: { order: 'asc' } } },
+  });
+
+  await prisma.survey.update({ where: { id: surveyId }, data: {} });
+  return copy;
 }
 
 export async function reorderQuestions(

@@ -32,9 +32,13 @@ export default async function SurveyEditPage({ params }: Props) {
     placeholder: q.placeholder,
     validation: q.validation,
     charLimit: q.charLimit,
+    minSelections: q.minSelections,
+    maxSelections: q.maxSelections,
+    ratingStyle: q.ratingStyle,
+    ratingMax: q.ratingMax,
+    searchable: q.searchable,
     allowOther: q.allowOther,
     buttonLabel: q.buttonLabel,
-    ratingMax: q.ratingMax,
     options: q.options.map((o) => ({ id: o.id, text: o.text, order: o.order })),
   }));
 
@@ -44,6 +48,7 @@ export default async function SurveyEditPage({ params }: Props) {
       initialQuestions={questions}
       surveyTitle={survey.title}
       surveySlug={survey.slug}
+      initialStatus={survey.status}
     />
   );
 }
