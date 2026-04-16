@@ -37,7 +37,7 @@ if (!fs.existsSync(STORIES_DIR)) {
   process.exit(1);
 }
 
-const storyFiles = fs.readdirSync(STORIES_DIR).filter(f => f.endsWith('.yaml'));
+const storyFiles = fs.readdirSync(STORIES_DIR).filter(f => f.endsWith('.yaml') && !f.startsWith('sprint-'));
 if (storyFiles.length === 0) {
   console.error('FAIL  stories/ directory has no YAML files');
   process.exit(1);

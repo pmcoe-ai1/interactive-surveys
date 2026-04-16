@@ -1,0 +1,204 @@
+sprint: 2
+goal: Survey builder is fully functional with all question types and respondents
+  can take surveys
+stories:
+  - id: S1.3
+    title: Edit question inline
+    as_a: survey creator
+    i_want: click a question and edit its text, options, and settings inline
+    so_that: I can refine questions without leaving the builder
+    scenarios:
+      - id: SC1.3.1
+        given: a survey with questions
+        when: I click on a question's text
+        then: the text becomes editable and I can type changes
+      - id: SC1.3.2
+        given: I am editing a choice question
+        when: I add/remove/reorder options
+        then: the options update in real-time
+      - id: SC1.3.3
+        given: I am editing a question
+        when: I click outside or press Escape
+        then: the edit is saved automatically
+  - id: S1.5
+    title: Delete question
+    as_a: survey creator
+    i_want: remove a question from my survey
+    so_that: I can clean up unwanted questions
+    scenarios:
+      - id: SC1.5.1
+        given: a survey with questions
+        when: I click the delete button on a question and confirm
+        then: the question is removed
+      - id: SC1.5.2
+        given: a survey with one question
+        when: I delete it
+        then: the survey shows an empty state with "Add your first question"
+      - id: SC1.5.3
+        given: I click delete
+        when: the confirmation dialog appears and I cancel
+        then: the question is not removed
+  - id: S1.6
+    title: Duplicate question
+    as_a: survey creator
+    i_want: duplicate an existing question
+    so_that: I can quickly create similar questions without retyping
+    scenarios:
+      - id: SC1.6.1
+        given: a survey with a configured question
+        when: I click "Duplicate"
+        then: a copy appears below with the same type, text, and options
+      - id: SC1.6.2
+        given: I duplicate a question with conditional logic
+        when: the copy is created
+        then: the logic rules are not copied (to avoid broken references)
+      - id: SC1.6.3
+        given: I duplicate a question
+        when: the copy appears
+        then: its title is suffixed with "(copy)"
+  - id: S2.2
+    title: Long text question
+    as_a: survey creator
+    i_want: add a long text question with optional character limit
+    so_that: I can collect detailed open-ended feedback
+    scenarios:
+      - id: SC2.2.1
+        given: I add a long text question
+        when: a respondent types multiple lines
+        then: the textarea expands to fit the content
+      - id: SC2.2.2
+        given: I set a 500 character limit
+        when: the respondent types 501 characters
+        then: they see a counter showing they exceeded the limit
+      - id: SC2.2.3
+        given: a long text question with no limit
+        when: the respondent submits
+        then: any length answer is accepted
+  - id: S2.4
+    title: Multiple choice question
+    as_a: survey creator
+    i_want: add a multiple choice question with min/max selection constraints
+    so_that: respondents can select one or more answers
+    scenarios:
+      - id: SC2.4.1
+        given: a multiple choice question
+        when: a respondent selects 3 options
+        then: all 3 are checked
+      - id: SC2.4.2
+        given: I set max selections to 2
+        when: a respondent tries to select a 3rd option
+        then: they see a message "Select at most 2"
+      - id: SC2.4.3
+        given: I set min selections to 1
+        when: a respondent tries to advance without selecting any
+        then: they see a message "Select at least 1"
+  - id: S2.5
+    title: Rating/scale question
+    as_a: survey creator
+    i_want: add a rating question (stars, numeric scale, or emoji)
+    so_that: I can measure satisfaction or sentiment
+    scenarios:
+      - id: SC2.5.1
+        given: a 5-star rating question
+        when: a respondent clicks the 4th star
+        then: stars 1-4 are filled and the rating is saved as 4
+      - id: SC2.5.2
+        given: a 1-10 numeric scale
+        when: a respondent clicks 7
+        then: 7 is highlighted and saved
+      - id: SC2.5.3
+        given: a rating question
+        when: the respondent hovers over a star
+        then: a preview highlight shows what they would select
+  - id: S2.7
+    title: Dropdown question
+    as_a: survey creator
+    i_want: add a dropdown question with searchable options
+    so_that: I can present long option lists compactly
+    scenarios:
+      - id: SC2.7.1
+        given: a dropdown with 50 options
+        when: a respondent clicks the dropdown
+        then: all options are shown in a scrollable list
+      - id: SC2.7.2
+        given: a dropdown with 10+ options
+        when: the respondent types in the search field
+        then: options are filtered by the typed text
+      - id: SC2.7.3
+        given: a dropdown question
+        when: the respondent selects an option
+        then: the dropdown closes and shows the selected value
+  - id: S3.1
+    title: One-question-at-a-time navigation
+    as_a: respondent
+    i_want: see one question at a time with smooth transitions
+    so_that: I can focus on each question without distraction
+    scenarios:
+      - id: SC3.1.1
+        given: I open a published survey
+        when: the first question loads
+        then: I see only one question centered on screen with a progress bar
+      - id: SC3.1.2
+        given: I answer a question
+        when: I press Enter or click Next
+        then: the current question slides out and the next slides in (200-300ms
+          transition)
+      - id: SC3.1.3
+        given: I am on question 5 of 10
+        when: I look at the progress bar
+        then: it shows 50% completion
+  - id: S3.2
+    title: Keyboard navigation
+    as_a: respondent
+    i_want: navigate the survey using keyboard shortcuts
+    so_that: I can complete it quickly without a mouse
+    scenarios:
+      - id: SC3.2.1
+        given: I am on a question
+        when: I press Enter
+        then: I advance to the next question
+      - id: SC3.2.2
+        given: I am on a single choice question with 4 options
+        when: I press 1/2/3/4
+        then: the corresponding option is selected
+      - id: SC3.2.3
+        given: I am on question 3
+        when: I press Shift+Tab or Up arrow
+        then: I go back to question 2
+  - id: S3.5
+    title: Transition animations
+    as_a: respondent
+    i_want: smooth animations between questions
+    so_that: the experience feels polished and guided
+    scenarios:
+      - id: SC3.5.1
+        given: I advance to the next question
+        when: the transition plays
+        then: the current question fades/slides up and the next fades/slides in within
+          200-300ms
+      - id: SC3.5.2
+        given: I go back to a previous question
+        when: the transition plays
+        then: the animation direction reverses (slides down instead of up)
+      - id: SC3.5.3
+        given: I have prefers-reduced-motion enabled
+        when: I navigate between questions
+        then: transitions are instant with no animation
+  - id: S1.8
+    title: Publish survey
+    as_a: survey creator
+    i_want: publish my survey to make it available via a shareable link
+    so_that: respondents can start taking it
+    scenarios:
+      - id: SC1.8.1
+        given: a survey with at least one question
+        when: I click "Publish"
+        then: the survey becomes live and I see the shareable link
+      - id: SC1.8.2
+        given: a survey with no questions
+        when: I try to publish
+        then: I see an error "Add at least one question before publishing"
+      - id: SC1.8.3
+        given: a published survey
+        when: I make edits
+        then: I see a "Republish" button to push changes live
