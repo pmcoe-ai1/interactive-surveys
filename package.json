@@ -2,7 +2,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "jest",
+    "test:ci": "jest --ci --passWithNoTests --json --outputFile=test-results.json --forceExit"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",
@@ -19,6 +21,10 @@
     "tailwindcss": "^4.2.2",
     "yaml": "^2.8.3"
   },
+  "optionalDependencies": {
+    "@next/swc-linux-x64-gnu": "14.2.33",
+    "@next/swc-linux-x64-musl": "14.2.33"
+  },
   "devDependencies": {
     "@testcontainers/postgresql": "^10.0.0",
     "@types/express": "^4.0.0",
@@ -32,6 +38,9 @@
     "testcontainers": "^10.0.0",
     "ts-jest": "^29.0.0",
     "ts-node": "^10.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.0.0"
   }
 }
