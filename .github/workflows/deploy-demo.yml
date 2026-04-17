@@ -1,0 +1,48 @@
+name: Deploy to Demo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli --silent
+
+      - name: Deploy to Railway demo
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --environment demo --detach
+
+      - name: Health check (2 min)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          URL="https://interactive-surveys-demo.up.railway.app"
+          echo "Polling $URL/api/health ..."
+          for i in $(seq 1 12); do
+            if curl -sf "${URL}/api/health" > /dev/null 2>&1; then
+              echo "Live: $URL"
+              exit 0
+            fi
+            echo "Attempt $i/12 — waiting 10s"
+            sleep 10
+          done
+          echo "Health check failed after 2 minutes"
+          exit 1
