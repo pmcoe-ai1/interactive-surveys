@@ -520,6 +520,9 @@ jobs:
       - name: Generate Prisma Client
         if: steps.skip_check.outputs.skip != 'true'
         run: npx prisma generate
+      - name: Check route parity (deterministic)
+        if: steps.skip_check.outputs.skip != 'true'
+        run: node scripts/check-route-parity.js --sprint ${{ github.event.inputs.sprint_number }}
       - name: Run tests (deterministic — no AI)
         id: tests
         if: steps.skip_check.outputs.skip != 'true'
